@@ -1,0 +1,86 @@
+@media screen {
+body {
+	margin: 10px;
+	background-color: #333;
+	color: white;
+}
+
+.controls {
+	position: fixed;
+	background-color: #333;
+	left:	0px;
+	right:	0px;
+	top:	0px;
+}
+
+.button {
+	display: block;
+	text-align: center;
+	background-color: #333;
+	border: 1px solid white;
+	color: white;
+	padding: 0.5em;
+	text-decoration: none;
+	font-size: large;
+}
+
+.button:hover {
+	background-color: #666;
+	color: #fc9;
+}
+
+td.firstlink, td.prevlink, td.nextlink, td.lastlink {
+	width: 10em;
+}
+
+}
+
+a {
+	text-decoration: none;
+	color: #c96;
+}
+
+a:hover {
+	color: #ffc;
+}
+
+@media print {
+
+.controls {
+	visibility: hidden;
+	position: fixed;
+	height: 0px;
+	width: 0px;
+	left: 0px;
+	top: 0px;
+}
+
+}
+
+.thumbnail {
+	border: 2px solid #ccc;
+}
+
+.thumbnail:hover {
+	border: 2px solid #fec;
+}
+
+.status {
+	text-align: center;
+}
+
+li {
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+}
+
+.popuptitle {
+	text-align: center;
+	font-size: large;
+	height:	20px;
+}
+
+.popupbody {
+	text-align: center;
+	height: 80px;
+}

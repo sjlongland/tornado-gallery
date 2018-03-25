@@ -1,0 +1,15 @@
+# Vim swapfiles
+*.swp
+.*.swp
+
+# Backup files
+*~
+
+# Python compiled files
+*.pyc
+*.pyo
+__pycache__
+
+# setuptools/distutils related
+build
+dist

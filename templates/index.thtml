@@ -1,0 +1,19 @@
+{% extends "master.thtml" %}
+{# vim: set ts=8 noet sw=8 syn=html fileencoding=utf-8: #}
+{% block html_head %}
+	<title>{{site_name}}</title>
+{% end %}
+{% block html_body %}
+	<h1 align="center">{{site_name}}</h1>
+
+	{% if galleries %}
+		{% for g in galleries %}
+		<div style="border: 1px solid #ccc; display: block;">
+			<h2><a style="display: block; text-align: center; padding: 0.5em;"
+				href="{{site_uri}}/{{g.name}}?{{page_query}}">{{g.title}}</a></h2>
+			<p style="padding-left: 1em; padding-right: 1em; text-align: center;">{{g.desc}}</p>
+		</div>
+		<div style="height: 1em;"></div>
+		{% end %}
+	{% end %}
+{% end %}

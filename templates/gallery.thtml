@@ -1,0 +1,45 @@
+{% extends "master.thtml" %}
+{# vim: set ts=8 noet sw=8 syn=html fileencoding=utf-8: #}
+{% block html_head %}
+	<style type="text/css">
+body {
+	margin-top: 200px;
+}
+	</style>
+	<title>Gallery: {{gallery_title}}</title>
+{% end %}
+{% block html_body %}
+	<table width="100%" class="controls">
+	<tr>
+		<td class="status"><a class="button" 
+			accesskey="i" href="{{site_uri}}?{{page_query}}"
+			target="_top"><img alt="Index" 
+			src="{{static_uri}}/templates/images/top.png" 
+			border="0" align="absmiddle" /></a></td>
+
+	</tr>
+	<tr>
+		<td class="status">
+			<h1 align="center">{{gallery_title}}</h1>
+			<p align="center">{{gallery_desc}}</p>
+		</td>
+	</tr>
+	</table>
+
+	<p align="center">
+	{% if photos %}
+		{% for p in photos %}
+			{% set hw = p.thumbwidth / 2 %}
+			{% set hh = p.thumbheight / 2 %}
+			{% set xpad = 60 - hw %}
+			{% set ypad = 60 - hh %}
+			<a href="{{site_uri}}/{{gallery_name}}/{{p.name}}?{{page_query}}"><img src="{{p.thumbnail}}"
+					align="absmiddle"
+					width="{{p.thumbwidth}}"
+					height="{{p.thumbheight}}"
+					style="padding-left: {{xpad}}px; padding-right: {{xpad}}px; padding-top: {{ypad}}px; padding-bottom: {{ypad}}px;"
+					alt="{{p.annotation}}" /></a>
+		{% end %}
+	{% end %}
+	</p>
+{% end %}

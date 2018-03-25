@@ -1,0 +1,162 @@
+{% extends "master.thtml" %}
+{% from json import dumps %}
+{# vim: set ts=8 noet sw=8 syn=html fileencoding=utf-8: #}
+{% block html_head %}
+	<style type="text/css">
+body {
+	margin-top: 100px;
+}
+	</style>
+	<title>Image: {{photo.annotation}} ({{photo.name}})</title>
+	<script lang="type/javascript">
+	function getData() {
+		var data = {
+		CGI: {
+			ScriptName: {{ dumps(CGI.ScriptName) }}
+		},
+		gallery: {
+			name: {{ dumps(gallery.name) }},
+			title: {{ dumps(gallery.title) }},
+			desc: {{ dumps(gallery.desc) }},
+			first: {{ dumps(gallery.first) }},
+			last: {{ dumps(gallery.last) }}
+		},
+		settings: {
+			width: {{settings.width}},
+			height: {{settings.height}},
+			quality: {{settings.quality}},
+			rotation: {{settings.rotation}}-0
+		},
+		photo: {
+			origwidth: {{photo.origwidth}},
+			origheight: {{photo.origheight}},
+			width: {{photo.width}},
+			height: {{photo.height}},
+			annotation: {{ dumps(photo.annotation) }},
+			thumbnail: {{ dumps(photo.thumbnails) }},
+			resized: {{ dumps(photo.resized) }},
+			name: {{ dumps(photo.name) }},
+			previous: {{ dumps(photo.previous) }},
+			next: {{ dumps(photo.next) }},
+			zoom: 	Math.round( 100*({{photo.width}}) / 
+				{{photo.origwidth}})/100
+		}};
+		if ( document.data )
+			data = document.data;
+		else
+			document.data = data;
+		return( data );
+	}
+	document.defaultZoom =
+			Math.round( 100*({{photo.width}}) / 
+				{{photo.origwidth}})/100;
+	document.rotation = {{settings.rotation}}-0;
+	</script>
+	<script lang="text/javascript" src="{{static_uri}}/templates/lib.js"></script>
+	<script lang="text/javascript" src="{{static_uri}}/templates/wheellib.js"></script>
+{% end %}
+{% block html_body %}
+	<table width="100%" class="controls" id="controls">
+	<tr>
+		<td class="firstlink"><a class="button" accesskey="["
+			href="{{site_uri}}/{{gallery.name}}/{{gallery.first}}?{{page_query}}"><img 
+				alt="|&lt;- First" src="{{static_uri}}/templates/images/start.png" 
+				border="0" align="absmiddle" /></a></td>
+		<td class="prevlink"><a class="button" accesskey=","
+			href="{{site_uri}}/{{gallery.name}}/{{photo.previous}}?{{page_query}}"><img
+				alt="&lt;- Prev" src="{{uri}}/templates/images/back.png"
+				border="0" align="absmiddle" /></a></td>
+		<td class="status"><a class="button" accesskey="l"
+			href="{{site_uri}}/{{gallery.name}}?{{page_query}}" target="_top"><img
+				alt="Album" src="{{static_uri}}/templates/images/up.png"
+				border="0" align="absmiddle" /></a></td>
+		<td class="status"><a class="button" accesskey="a"
+			href="#adjust" target="_top" onclick="toggleadj();"><img
+				alt="Adjust" src="{{static_uri}}/templates/images/configure.png"
+				border="0" align="absmiddle" /></a></td>
+		<td class="status"><a class="button" accesskey="i"
+			href="{{site_uri}}?{{page_query}}"
+				target="_top"><img alt="Index"
+				src="{{static_uri}}/templates/images/top.png"
+				border="0" align="absmiddle" /></a></td>
+		<td class="nextlink"><a class="button" accesskey="."
+			href="{{site_uri}}/{{gallery.name}}/{{photo.next}}?{{page_query}}"><img alt="-&gt; Next" src="{{static_uri}}/templates/images/forward.png" border="0"
+				align="absmiddle" /></a></td>
+		<td class="lastlink"><a class="button" accesskey="]"
+			href="{{site_uri}}/{{gallery.name}}/{{gallery.last}}?{{page_query}}"><img
+				alt="-&gt;| Last" src="{{static_uri}}/templates/images/finish.png"
+				border="0" align="absmiddle" /></a></td>
+	</tr>
+	<tr>
+		<td class="status" colspan="7">
+			{{photo.annotation}} ({{photo.name}})
+		</td>
+	</tr>
+	<tr id="adjpanel">
+		<td colspan="7" class="status">
+	<form>
+		<a name="adjust"></a>
+		Resize:	<input type="text"	name="width" id="width"
+						value="{{photo.width}}" size="3" /> x
+			<input type="text"	name="height" id="height"
+						value="{{photo.height}}" size="3" />
+		Rotation:
+			<input type="text" 	name="rotation" id="rotate"
+						value="0.000" size="5" />
+		Quality: <input type="text"	name="quality" 
+						value="60" size="3" /> 
+						(100% = PNG)
+		<input type="submit" value="Go" />
+		<br />
+		
+		Zoom:
+		<a href="#" onclick="adjustZoom( -0.1 );">[-0.1]</a>
+		<a href="#" onclick="adjustZoom( -0.01 );">[-0.01]</a>
+		<a href="#" onclick="setZoom( 1.0 );">[1.0]</a>
+		<a href="#" onclick="adjustZoom( 0.01 );">[+0.01]</a>
+		<a href="#" onclick="adjustZoom( 0.1 );">[+0.1]</a>
+		<a href="#" onclick="resetZoom();">[reset]</a><br />
+
+		Mouse wheel action:
+		<input type="radio"	name="wheelAction"
+					value="zoom"
+					id="wheelActionZoom" />
+			<label for="wheelActionZoom">Zoom</label>
+		by <input type="text"	name="wheelZoom" size="2"
+					value="1" id="wheelZoom" />%
+		or
+		<input type="radio"	name="wheelAction"
+					value="hpan" 
+					id="wheelActionHPan" />
+			<label for="wheelActionHPan">HPan</label>
+		<input type="radio"	name="wheelAction"
+					value="vpan" checked 
+					id="wheelActionVPan" />
+			<label for="wheelActionVPan">VPan</label>
+		by <input type="text"	name="wheelPan" size="2"
+					value="50" id="wheelPan" /> pixels
+
+		or
+		<input type="radio"	name="wheelAction"
+					value="rotate"
+					id="wheelActionRotate" />
+			<label for="wheelActionRotate">Rotate</label>
+		by <input type="text"	name="wheelRotate" size="2"
+					value="1" id="wheelRotate" /> degrees
+	</form>
+		</td>
+	</tr>
+	</table>
+	<p align="center"><img	id="photoimg"
+				width="{{photo.width}}"
+				height="{{photo.height}}"
+				src="{{static_uri}}/{{photo.resized}}" 
+				alt="{{photo.annotation}}" 
+				lowsrc="{{static_uri}}/{{photo.thumbnail}}" /></p>
+	
+	<div class="photodesc">
+		{{photo.description}}
+	</div>
+{% end %}
+
+{% block html_body_args %}onload="toggleadj();"{% end %}
