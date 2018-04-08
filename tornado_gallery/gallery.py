@@ -3,7 +3,6 @@
 from weakref import WeakValueDictionary
 from collections import OrderedDict
 
-import os.path
 from time import time
 
 from .metadata import parse_meta
@@ -17,15 +16,13 @@ class Gallery(object):
 
     _INSTANCE = WeakValueDictionary()
 
-    def __init__(self, fs_cache, meta_cache, dir):
-        dir = os.path.realpath(dir)
-
-        self._dir = dir
+    def __init__(self, fs_cache, meta_cache, path):
+        self._fs_cache = fs_cache
+        self._fs_node = self._fs_cache[path]
         self._title = None
         self._desc = None
         self._meta_cache = meta_cache
         self._meta_mtime = 0
-        self._fs_cache = fs_cache
 
         self._content = None
         self._content_mtime = 0
@@ -43,32 +40,30 @@ class Gallery(object):
 
     @property
     def dir(self):
-        return self._dir
+        return self._fs_node.abs_path
 
     @property
     def name(self):
-        return os.path.basename(self.dir)
+        return self._fs_node.base_name
 
     @property
     def title(self):
-        self._parse_metadata()
-        return self._title
+        return self._meta['.title']
 
     @property
     def desc(self):
-        self._parse_metadata()
-        return self._desc
+        return self._meta['.desc']
 
     @property
     def content(self):
-        content_mtime_now = self._content_mtime_now
+        content_mtime_now = self._fs_node.mtime
         if self._content_mtime < content_mtime_now:
             content = {}
-            for name in self._fs_cache[self.dir]:
+            for name in self._fs_node:
                 # Grab the file extension and analyse
                 (_, ext) = name.rsplit('.',1)
                 if ext.lower() not in ('jpg', 'jpe', 'jpeg', 'gif',
-                                        'png', 'tif', 'tiff'):
+                                        'png', 'tif', 'tiff', 'bmp',):
                     continue
                 # This is a photo.
                 content[name] = Photo(self, name)
@@ -78,21 +73,5 @@ class Gallery(object):
         return self._content.copy()
 
     @property
-    def _meta_file(self):
-        return os.path.join(self.dir, 'info.txt')
-
-    @property
-    def _meta_mtime_now(self):
-        return self._fs_cache[self._meta_file].stat.st_mtime
-
-    @property
-    def _dir_mtime_now(self):
-        return self._fs_cache[self.dir].stat.st_mtime
-
-    def _parse_metadata(self):
-        meta_mtime_now = self._meta_mtime_now
-        if meta_mtime_now > self._meta_mtime:
-            data = self._meta_cache[meta_file]
-            self._title = data.get('.title', self.name)
-            self._desc = data.get('.desc', 'No description given')
-            self._meta_mtime = meta_mtime_now
+    def _meta(self):
+        return self._meta_cache[self._fs_node.join('info.txt')]
