@@ -2,11 +2,6 @@
 
 from weakref import ref
 
-import os.path
-from time import time
-
-from .metadata import parse_meta
-
 
 class Photo(object):
     """
@@ -60,4 +55,4 @@ class Photo(object):
             # Retrieve from the parent
             return self._gallery._meta[self.name, key]
 
-        return meta[key]
+        return self._gallery()._meta_cache[meta][key]
