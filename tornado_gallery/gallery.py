@@ -1,12 +1,32 @@
 #!/usr/bin/env python
 
+from cachefs import CacheFs
 from weakref import WeakValueDictionary
 from collections import OrderedDict
 
 from time import time
 
-from .metadata import parse_meta
+from .metadata import MetadataCache
+from .cache import Cache
 from .photo import Photo
+from .resizer import ResizerPool
+
+
+class GalleryCollection(Cache):
+    """
+    Represents the collection of photo galleries.
+    """
+
+    def __init__(self, root_dir, num_proc=None, cache_expiry=300.0,
+            cache_stat_expiry=1.0):
+        super(GalleryCollection, self).__init__(cache_expiry=cache_expiry)
+        self._fs_cache = CacheFs(cache_expory, cache_stat_expiry)
+        self._meta_cache = MetadataCache(self._fs_cache, cache_expiry)
+        self._root_node = self._fs_cache[root_dir]
+
+    def _fetch(self, name):
+        return Gallery(fs_cache=self._fs_cache,
+                self._meta_cache, self._root_node.join_node(name))
 
 
 class Gallery(object):
@@ -16,9 +36,8 @@ class Gallery(object):
 
     _INSTANCE = WeakValueDictionary()
 
-    def __init__(self, fs_cache, meta_cache, path):
-        self._fs_cache = fs_cache
-        self._fs_node = self._fs_cache[path]
+    def __init__(self, fs_cache, meta_cache, gallery_node):
+        self._fs_node = gallery_node
         self._title = None
         self._desc = None
         self._meta_cache = meta_cache
@@ -29,18 +48,6 @@ class Gallery(object):
 
         assert self.name not in self._INSTANCE
         self._INSTANCE[self.name] = self
-
-    @property
-    def fs_cache(self):
-        return self._fs_cache
-
-    @property
-    def meta_cache(self):
-        return self._meta_cache
-
-    @property
-    def dir(self):
-        return self._fs_node.abs_path
 
     @property
     def name(self):
