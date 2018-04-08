@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from time import time
+from .cache import Cache
+from cachefs.node import Node
 
 
 class MetadataFile(object):
@@ -59,45 +61,19 @@ class MetadataFile(object):
             return self._children_data[child][key]
 
 
-class MetadataCache(object):
+class MetadataCache(Cache):
     """
     Store the metadata for lots of files and keep them cached.
     """
 
     def __init__(self, fs_cache, cache_duration=300.0):
-        self._cache_duration = float(cache_duration)
-        self._file = {}
+        super(MetadataCache, self).__init__(cache_duration=cache_duration)
         self._fs_cache = fs_cache
 
+    def fetch(self, filename):
+        return MetadataFile(self._fs_cache[filename])
+
     def __getitem__(self, filename):
-        """
-        Retrieve the content of the given metadata file.
-        """
-        node = self._fs_cache[filename]
-
-        try:
-            # Refresh expiry before returning.
-            return self._store_file(node)
-        except KeyError:
-            pass
-
-        # Not in cache, try to read it in.
-        return self._store_file(node)
-
-    def _store_file(self, node):
-        path = node.abs_path
-        if path in self._file:
-            (_, meta) = self._file[path]
-        else:
-            meta = MetadataFile(node)
-
-        self._file[path] = (time() + self._cache_duration, meta)
-        return meta
-
-    def purge(self):
-        """
-        Purge the cache of expired content.
-        """
-        for filename, (expiry, _) in list(self._file.items()):
-            if expiry < time():
-                self._file.pop(filename, None)
+        if isinstance(filename, Node):
+            filename = node.abs_path
+        return super(MetadataCache, self).__getitem__(filename)
