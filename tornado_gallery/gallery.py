@@ -66,7 +66,7 @@ class Gallery(object):
                                         'png', 'tif', 'tiff', 'bmp',):
                     continue
                 # This is a photo.
-                content[name] = Photo(self, name)
+                content[name] = Photo(self, self._fs_node[name])
             self._content = OrderedDict(sorted(content.items(),
                 key=lambda i : i[0]))
             self._content_mtime = content_mtime_now
