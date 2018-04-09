@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from weakref import ref
+from tornado.gen import coroutine, Return
 
 
 class Photo(object):
@@ -22,7 +23,7 @@ class Photo(object):
             return self._meta_node['.annotation']
         except KeyError:
             try:
-                return self._gallery()._meta[self._fs_node.basename]
+                return self._gallery()._meta[self._fs_node.base_name]
             except KeyError:
                 return None
 
@@ -56,3 +57,24 @@ class Photo(object):
             return self._gallery._meta[self.name, key]
 
         return self._gallery()._meta_cache[meta][key]
+
+    # Gallery services
+    @coroutine
+    def get_resized(self, width=None, height=None, quality=60,
+            rotation=0.0, img_format=None):
+        result = yield self._gallery().get_resized(
+                photo=self.name, width=width, height=height,
+                quality=quality, rotation=rotation, img_format=img_format)
+        raise Return(result)
+
+    @property
+    def _meta_cache(self):
+        return self._gallery()._meta_cache
+
+    @property
+    def _fs_cache(self):
+        return self._gallery()._fs_cache
+
+    @property
+    def _resizer_pool(self):
+        return self._gallery()._resizer_pool
