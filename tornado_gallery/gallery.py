@@ -34,7 +34,7 @@ class GalleryCollection(Cache):
         self._root_node = self._fs_cache[root_dir]
         self._resizer_pool = ResizerPool(
                 self._root_node, cache_subdir=cache_subdir,
-                num_proc=num_proc)
+                num_proc=num_proc, log=log.getChild('resizer'))
         self._cache_subdir = cache_subdir
 
     def __iter__(self):
