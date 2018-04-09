@@ -140,8 +140,8 @@ class ResizerPool(object):
             if (cache_node.stat.st_size > 0) and \
                     (cache_node.stat.st_mtime >= orig_node.stat.st_mtime):
                 # This will do.  Re-use the existing file.
-                return (img_format, cache_name,
-                        open(cache_node.abs_path, 'rb').read())
+                raise Return((img_format, cache_name,
+                        open(cache_node.abs_path, 'rb').read()))
         except KeyError:
             # We do not, press on!
             pass
@@ -154,5 +154,5 @@ class ResizerPool(object):
         resized.save(open(cache_node.abs_path,'rb'), img_format.pil_fmt)
 
         # Return to caller
-        return (img_format, cache_name,
-                open(cache_node.abs_path, 'rb').read())
+        raise Return((img_format, cache_name,
+                open(cache_node.abs_path, 'rb').read()))
