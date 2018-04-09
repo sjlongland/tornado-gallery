@@ -2,6 +2,7 @@
 
 from time import time
 from collections import Mapping
+import logging
 
 
 class Cache(object):
@@ -9,7 +10,11 @@ class Cache(object):
     A key-value cache object that expires entries after a period.
     """
 
-    def __init__(self, cache_duration=300.0):
+    def __init__(self, cache_duration=300.0, log=None):
+        if log is None:
+            log = logging.getLogger(self.__class__.__module__)
+
+        self._log = log
         self._cache_duration = float(cache_duration)
         self._items = {}
 
@@ -19,8 +24,10 @@ class Cache(object):
         """
         try:
             (_, value) = self._items[key]
+            self._log.debug('Have %s', key)
         except KeyError:
             value = self._fetch(key)
+            self._log.debug('Retrieving %s', key)
         self._items[key] = (time() + self._cache_duration, value)
         return value
 
@@ -39,6 +46,7 @@ class Cache(object):
         """
         for key, (expiry, _) in list(self._items.items()):
             if expiry < time():
+                self._log.debug('Purging expired item %s', key)
                 self._items.pop(key, None)
 
     @property
