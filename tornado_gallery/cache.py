@@ -31,7 +31,7 @@ class Cache(object):
                 yield key
 
     def __len__(self):
-        return len(list(self))
+        return len(list(self.__iter__()))
 
     def purge(self):
         """
