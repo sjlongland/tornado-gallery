@@ -80,7 +80,7 @@ class Gallery(object):
 
     @property
     def content(self):
-        content_mtime_now = self._fs_node.mtime
+        content_mtime_now = self._fs_node.stat.st_mtime
         if self._content_mtime < content_mtime_now:
             content = {}
             for name in self._fs_node:
