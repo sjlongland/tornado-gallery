@@ -66,8 +66,9 @@ class MetadataCache(Cache):
     Store the metadata for lots of files and keep them cached.
     """
 
-    def __init__(self, fs_cache, cache_duration=300.0):
-        super(MetadataCache, self).__init__(cache_duration=cache_duration)
+    def __init__(self, fs_cache, cache_duration=300.0, log=None):
+        super(MetadataCache, self).__init__(cache_duration=cache_duration,
+                log=log)
         self._fs_cache = fs_cache
 
     def _fetch(self, filename):
