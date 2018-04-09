@@ -3,7 +3,7 @@
 import logging
 from cachefs import CacheFs
 from weakref import ref
-from collections import OrderedDict
+from collections import OrderedDict, Mapping
 
 from time import time
 
@@ -70,7 +70,7 @@ class GalleryCollection(Cache):
                 gallery_node=self._root_node.join_node(name))
 
 
-class Gallery(object):
+class Gallery(Mapping):
     """
     Representation of a photo gallery.
     """
@@ -94,8 +94,16 @@ class Gallery(object):
     def desc(self):
         return self._meta['.desc']
 
-    @property
-    def content(self):
+    def __iter__(self):
+        return iter(self._get_content().keys())
+
+    def __getitem__(self, item):
+        return self._get_content()[item]
+
+    def __len__(self):
+        return len(self._get_content())
+
+    def _get_content(self):
         content_mtime_now = self._fs_node.stat.st_mtime
         if self._content_mtime < content_mtime_now:
             content = {}
@@ -110,7 +118,7 @@ class Gallery(object):
             self._content = OrderedDict(sorted(content.items(),
                 key=lambda i : i[0]))
             self._content_mtime = content_mtime_now
-        return self._content.copy()
+        return self._content
 
     @property
     def _meta(self):
