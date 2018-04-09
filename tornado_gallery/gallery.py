@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import logging
 from cachefs import CacheFs
 from weakref import ref
 from collections import OrderedDict
@@ -24,10 +25,12 @@ class GalleryCollection(Cache):
 
     def __init__(self, root_dir, cache_subdir=CACHE_DIR_NAME,
             num_proc=None, cache_expiry=300.0,
-            cache_stat_expiry=1.0):
-        super(GalleryCollection, self).__init__(cache_duration=cache_expiry)
+            cache_stat_expiry=1.0, log=None):
+        super(GalleryCollection, self).__init__(
+                cache_duration=cache_expiry, log=log)
         self._fs_cache = CacheFs(cache_expiry, cache_stat_expiry)
-        self._meta_cache = MetadataCache(self._fs_cache, cache_expiry)
+        self._meta_cache = MetadataCache(self._fs_cache, cache_expiry,
+                log=log.getChild('meta'))
         self._root_node = self._fs_cache[root_dir]
         self._resizer_pool = ResizerPool(
                 self._root_node, cache_subdir=cache_subdir,
