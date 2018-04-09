@@ -6,6 +6,7 @@ from io import BytesIO
 from enum import Enum
 from tornado.locks import Semaphore
 import magic
+import logging
 
 import multiprocessing
 from weakref import WeakValueDictionary
@@ -39,10 +40,14 @@ class ImageFormat(Enum):
 
 
 class ResizerPool(object):
-    def __init__(self, root_dir_node, cache_subdir, num_proc=None):
+    def __init__(self, root_dir_node, cache_subdir, num_proc=None, log=None):
+        if log is None:
+            log = logging.getLogger(self.__class__.__module__)
+
         if num_proc is None:
             num_proc = multiprocessing.cpu_count()
 
+        self._log = log
         self._pool = multiprocessing.Pool(num_proc)
         self._fs_node = root_dir_node
         self._cache_node = self._fs_node[cache_subdir]
@@ -55,10 +60,16 @@ class ResizerPool(object):
         """
         Retrieve the given photo in a resized format.
         """
+        # Determine the path to the original file.
+        orig_node = self._fs_node.join_node(gallery, photo)
+
         if img_format is None:
             # Detect from original file and quality setting.
             with magic.Magic(flags=magic.MAGIC_MIME_TYPE) as m:
-                if m.id_filename(orig_node.abs_path) == 'image/gif':
+                mime_type = m.id_filename(orig_node.abs_path)
+                self._log.debug('%s/%s detected format %s',
+                        gallery, photo, mime_type)
+                if mime_type == 'image/gif':
                     img_format = ImageFormat.GIF
                 else:
                     if quality == 100:
@@ -70,6 +81,9 @@ class ResizerPool(object):
         else:
             # Use the format given by the user
             img_format = ImageFormat(img_format)
+
+        self._log.debug('%s/%s using %s format',
+                gallery, photo, img_format.name)
 
         # Do we need to compute full dimensions?
         if (width is None) or (height is None):
@@ -86,6 +100,9 @@ class ResizerPool(object):
                 # Fit to height
                 width = int(height * ratio)
 
+            self._log.debug('%s/%s target dimensions %d by %d',
+                    gallery, photo, width, height)
+
         # Locate the lock for this photo.
         mutex_key = (gallery, photo, width, height, quality, rotation,
                 img_format)
@@ -96,10 +113,14 @@ class ResizerPool(object):
             self._mutexes[mutex_key] = mutex
 
         try:
+            self._log.debug('%s/%s waiting for mutex',
+                    gallery, photo)
             yield mutex.acquire()
 
             # We have the semaphore, call our resize routine.
             future = Future()
+            self._log.debug('%s/%s retrieving resized image',
+                    gallery, photo)
             self._pool.apply_async(
                 func=self._do_resize,
                 args=(gallery, photo, width, height, quality,
@@ -107,7 +128,12 @@ class ResizerPool(object):
                 callback=future.set_result,
                 error_callback=future.set_exception)
             (img_format, file_name, file_data) = yield future
-            return (img_format, file_name, file_data)
+            raise Return((img_format, file_name, file_data))
+        except:
+            self._log.exception('Error resizing photo; gallery: %s, photo: %s, '\
+                    'width: %d, height: %d, quality: %f, rotation: %f, format: %s',
+                    gallery, photo, width, height, quality, rotation, img_format)
+            raise
         finally:
             mutex.release()
 
@@ -116,6 +142,12 @@ class ResizerPool(object):
         """
         Perform a resize of the image, and return the result.
         """
+        log = self._log.getChild('%s/%s@%dx%d' \
+                % (gallery, photo, width, height))
+        log.debug('Resizing photo; quality %f, '\
+                'rotation %f, format %s',
+                quality, rotation, img_format.name)
+
         # Determine the path to the original file.
         orig_node = self._fs_node.join_node(gallery, photo)
 
@@ -132,6 +164,7 @@ class ResizerPool(object):
                     'rotation': rotation,
                     'ext': img_format.ext
                 })
+        log.debug('Resized file: %s', cache_name)
 
         # Do we have this file?
         try:
@@ -140,8 +173,9 @@ class ResizerPool(object):
             if (cache_node.stat.st_size > 0) and \
                     (cache_node.stat.st_mtime >= orig_node.stat.st_mtime):
                 # This will do.  Re-use the existing file.
-                raise Return((img_format, cache_name,
-                        open(cache_node.abs_path, 'rb').read()))
+                log.info('Returning cached result')
+                return (img_format, cache_name,
+                        open(cache_node.abs_path, 'rb').read())
         except KeyError:
             # We do not, press on!
             pass
@@ -154,5 +188,6 @@ class ResizerPool(object):
         resized.save(open(cache_node.abs_path,'rb'), img_format.pil_fmt)
 
         # Return to caller
-        raise Return((img_format, cache_name,
-                open(cache_node.abs_path, 'rb').read()))
+        log.info('Returning resized result')
+        return (img_format, cache_name,
+                open(cache_node.abs_path, 'rb').read())
