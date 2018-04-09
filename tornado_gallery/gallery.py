@@ -26,6 +26,9 @@ class GalleryCollection(Cache):
     def __init__(self, root_dir, cache_subdir=CACHE_DIR_NAME,
             num_proc=None, cache_expiry=300.0,
             cache_stat_expiry=1.0, log=None):
+        if log is None:
+            log = logging.getLogger(self.__class__.__module__)
+
         super(GalleryCollection, self).__init__(
                 cache_duration=cache_expiry, log=log)
         self._fs_cache = CacheFs(cache_expiry, cache_stat_expiry)
