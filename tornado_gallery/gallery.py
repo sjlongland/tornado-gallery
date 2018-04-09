@@ -117,5 +117,9 @@ class Gallery(object):
         return self._collection()._meta_cache
 
     @property
+    def _fs_cache(self):
+        return self._collection()._fs_cache
+
+    @property
     def _resizer_pool(self):
         return self._collection()._resizer_pool
