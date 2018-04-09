@@ -70,7 +70,7 @@ class MetadataCache(Cache):
         super(MetadataCache, self).__init__(cache_duration=cache_duration)
         self._fs_cache = fs_cache
 
-    def fetch(self, filename):
+    def _fetch(self, filename):
         return MetadataFile(self._fs_cache[filename])
 
     def __getitem__(self, filename):
