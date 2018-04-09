@@ -40,21 +40,31 @@ class GalleryCollection(Cache):
                 num_proc=num_proc, log=log.getChild('resizer'))
         self._cache_subdir = cache_subdir
 
+        self._content = None
+        self._content_mtime = 0
+
     def __iter__(self):
-        for entry in self._root_node:
-            if entry == self._cache_subdir:
-                continue
-            node = self._root_node[entry]
-            if not node.is_dir:
-                continue
-
-            try:
-                if not node[GALLERY_META_FILE].is_file:
+        content_mtime = self._root_node.stat.st_mtime
+        if content_mtime > self._content_mtime:
+            content = []
+            for entry in self._root_node:
+                if entry == self._cache_subdir:
                     continue
-                yield entry
-            except KeyError:
-                continue
+                node = self._root_node[entry]
+                if not node.is_dir:
+                    continue
 
+                try:
+                    if not node[GALLERY_META_FILE].is_file:
+                        continue
+                    content.append(entry)
+                except KeyError:
+                    continue
+
+            content.sort()
+            self._content = content
+            self._content_mtime = content_mtime
+        return iter(self._content)
     def _fetch(self, name):
         return Gallery(collection=self,
                 gallery_node=self._root_node.join_node(name))
