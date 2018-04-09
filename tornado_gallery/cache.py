@@ -5,7 +5,7 @@ from collections import Mapping
 import logging
 
 
-class Cache(object):
+class Cache(Mapping):
     """
     A key-value cache object that expires entries after a period.
     """
