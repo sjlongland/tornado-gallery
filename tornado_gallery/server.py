@@ -74,9 +74,24 @@ class GalleryHandler(RequestHandler):
 
 
 class PhotoHandler(RequestHandler):
+    @coroutine
     def get(self, gallery_name, photo_name):
         gallery = self.application._collection[gallery_name]
         photo = gallery[photo_name]
+
+        show_photo = self.get_query_argument('show', False) == 'on'
+        if show_photo:
+            (img_format, cache_name, img_data) = \
+                    yield photo.get_resized(
+                            width=self.get_query_argument('width', 720),
+                            height=self.get_query_argument('height', None),
+                            quality=self.get_query_argument('quality', 60.0),
+                            rotation=self.get_query_argument('rotation', 0.0),
+                            img_format=self.get_query_argument('format', None))
+            self.set_status(200)
+            self.set_header('Content-Type', img_format.value)
+            self.write(img_data)
+            return
 
         self.set_status(200)
         self.set_header('Content-Type', 'text/plain')
