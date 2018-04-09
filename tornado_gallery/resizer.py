@@ -149,7 +149,7 @@ class ResizerPool(object):
         # Resize!
         orig = Image.open(open(orig_node.abs_path,'rb'))
         resized = orig.resize((width, height), Image.LANCZOS)
-        
+
         # Write out the new file.
         resized.save(open(cache_node.abs_path,'rb'), img_format.pil_fmt)
 
