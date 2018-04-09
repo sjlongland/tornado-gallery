@@ -9,6 +9,7 @@ import magic
 import logging
 
 import multiprocessing
+import multiprocessing.pool
 from weakref import WeakValueDictionary
 
 # Filename extension mappings
@@ -48,7 +49,7 @@ class ResizerPool(object):
             num_proc = multiprocessing.cpu_count()
 
         self._log = log
-        self._pool = multiprocessing.Pool(num_proc)
+        self._pool = multiprocessing.pool.ThreadPool(num_proc)
         self._fs_node = root_dir_node
         self._cache_node = self._fs_node[cache_subdir]
         self._mutexes = WeakValueDictionary()
@@ -112,6 +113,8 @@ class ResizerPool(object):
             mutex = Semaphore(1)
             self._mutexes[mutex_key] = mutex
 
+        resize_args = (gallery, photo, width, height, quality,
+                    rotation, img_format.value)
         try:
             self._log.debug('%s/%s waiting for mutex',
                     gallery, photo)
@@ -119,12 +122,11 @@ class ResizerPool(object):
 
             # We have the semaphore, call our resize routine.
             future = Future()
-            self._log.debug('%s/%s retrieving resized image',
-                    gallery, photo)
+            self._log.debug('%s/%s retrieving resized image (args=%s)',
+                    gallery, photo, resize_args)
             self._pool.apply_async(
                 func=self._do_resize,
-                args=(gallery, photo, width, height, quality,
-                    rotation, img_format),
+                args=resize_args,
                 callback=future.set_result,
                 error_callback=future.set_exception)
             (img_format, file_name, file_data) = yield future
@@ -142,6 +144,8 @@ class ResizerPool(object):
         """
         Perform a resize of the image, and return the result.
         """
+        img_format = ImageFormat(img_format)
+
         log = self._log.getChild('%s/%s@%dx%d' \
                 % (gallery, photo, width, height))
         log.debug('Resizing photo; quality %f, '\
