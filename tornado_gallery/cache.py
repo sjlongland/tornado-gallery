@@ -31,9 +31,7 @@ class Cache(object):
                 yield key
 
     def __len__(self):
-        now = time.time()
-        return len(list(filter(
-            lambda v : v[0] > now, self._items.values())))
+        return len(list(self))
 
     def purge(self):
         """
