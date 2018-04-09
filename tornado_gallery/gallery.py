@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from cachefs import CacheFs
-from weakref import WeakValueDictionary
+from weakref import ref
 from collections import OrderedDict
 
 from time import time
@@ -11,22 +11,47 @@ from .cache import Cache
 from .photo import Photo
 from .resizer import ResizerPool
 
+from tornado.gen import coroutine, Return
+
+GALLERY_META_FILE = 'info.txt'
+CACHE_DIR_NAME = 'cache'
+
 
 class GalleryCollection(Cache):
     """
     Represents the collection of photo galleries.
     """
 
-    def __init__(self, root_dir, num_proc=None, cache_expiry=300.0,
+    def __init__(self, root_dir, cache_subdir=CACHE_DIR_NAME,
+            num_proc=None, cache_expiry=300.0,
             cache_stat_expiry=1.0):
-        super(GalleryCollection, self).__init__(cache_expiry=cache_expiry)
-        self._fs_cache = CacheFs(cache_expory, cache_stat_expiry)
+        super(GalleryCollection, self).__init__(cache_duration=cache_expiry)
+        self._fs_cache = CacheFs(cache_expiry, cache_stat_expiry)
         self._meta_cache = MetadataCache(self._fs_cache, cache_expiry)
         self._root_node = self._fs_cache[root_dir]
+        self._resizer_pool = ResizerPool(
+                self._root_node, cache_subdir=cache_subdir,
+                num_proc=num_proc)
+        self._cache_subdir = cache_subdir
+
+    def __iter__(self):
+        for entry in self._root_node:
+            if entry == self._cache_subdir:
+                continue
+            node = self._root_node[entry]
+            if not node.is_dir:
+                continue
+
+            try:
+                if not node[GALLERY_META_FILE].is_file:
+                    continue
+                yield entry
+            except KeyError:
+                continue
 
     def _fetch(self, name):
-        return Gallery(fs_cache=self._fs_cache,
-                self._meta_cache, self._root_node.join_node(name))
+        return Gallery(collection=self,
+                gallery_node=self._root_node.join_node(name))
 
 
 class Gallery(object):
@@ -34,20 +59,12 @@ class Gallery(object):
     Representation of a photo gallery.
     """
 
-    _INSTANCE = WeakValueDictionary()
-
-    def __init__(self, fs_cache, meta_cache, gallery_node):
+    def __init__(self, collection, gallery_node):
+        self._collection = ref(collection)
         self._fs_node = gallery_node
-        self._title = None
-        self._desc = None
-        self._meta_cache = meta_cache
-        self._meta_mtime = 0
 
         self._content = None
         self._content_mtime = 0
-
-        assert self.name not in self._INSTANCE
-        self._INSTANCE[self.name] = self
 
     @property
     def name(self):
@@ -81,4 +98,24 @@ class Gallery(object):
 
     @property
     def _meta(self):
-        return self._meta_cache[self._fs_node.join('info.txt')]
+        return self._meta_cache[self._fs_node.join(GALLERY_META_FILE)]
+
+    @coroutine
+    def get_resized(self, photo, width=None, height=None, quality=60,
+            rotation=0.0, img_format=None):
+        if isinstance(photo, Photo):
+            photo = photo.name
+
+        result = yield self._resizer_pool.get_resized(
+                gallery=self.name, photo=photo, width=width, height=height,
+                quality=quality, rotation=rotation, img_format=img_format)
+        raise Return(result)
+
+    # Collection services
+    @property
+    def _meta_cache(self):
+        return self._collection()._meta_cache
+
+    @property
+    def _resizer_pool(self):
+        return self._collection()._resizer_pool
