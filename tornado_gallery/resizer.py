@@ -39,7 +39,7 @@ class ImageFormat(Enum):
 
 
 class ResizerPool(object):
-    def __init__(self, root_dir_node, cache_subdir='cache', num_proc=None):
+    def __init__(self, root_dir_node, cache_subdir, num_proc=None):
         if num_proc is None:
             num_proc = multiprocessing.cpu_count()
 
