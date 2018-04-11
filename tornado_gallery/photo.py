@@ -42,6 +42,20 @@ class Photo(object):
             return None
 
     @property
+    def prev(self):
+        try:
+            return self._gallery()._get_prev(self.name)
+        except KeyError:
+            pass
+
+    @property
+    def next(self):
+        try:
+            return self._gallery()._get_next(self.name)
+        except KeyError:
+            pass
+
+    @property
     def _meta_node(self):
         # Return the metadata node for this photo.
         (photo_name, _) = self._fs_node.abs_path.rsplit('.',1)
