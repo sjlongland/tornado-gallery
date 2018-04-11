@@ -50,13 +50,13 @@ Body:
 class RootHandler(RequestHandler):
     def get(self):
         self.set_status(200)
-        self.set_header('Content-Type', 'text/plain')
-        self.write('''Root handler
------------------------------------------------------------------------
-''' + '\n'.join([
-    '%-24s: %s' % (g.name, g.title)
-    for g in self.application._collection.values()
-]))
+        self.render('index.thtml',
+                site_name='site_name',
+                static_uri=self.application._static_uri,
+                site_uri=self.application._site_uri,
+                page_query=self.request.query,
+                galleries=list(self.application._collection.values())
+        )
 
 
 class GalleryHandler(RequestHandler):
@@ -103,9 +103,12 @@ Annotation: %s
 
 
 class GalleryApp(Application):
-    def __init__(self, root_dir, cache_subdir=CACHE_DIR_NAME,
+    def __init__(self, root_dir, static_uri, site_uri,
+            cache_subdir=CACHE_DIR_NAME,
             num_proc=None, cache_expiry=300.0,
-            cache_stat_expiry=1.0):
+            cache_stat_expiry=1.0, **kwargs):
+        self._static_uri = static_uri
+        self._site_uri = site_uri
         self._collection = GalleryCollection(
                 root_dir=root_dir,
                 cache_subdir=cache_subdir,
@@ -117,7 +120,7 @@ class GalleryApp(Application):
                 PhotoHandler),
             (r"/([a-zA-Z0-9_\-]+)/?", GalleryHandler),
             (r"/", RootHandler),
-        ])
+        ], **kwargs)
 
 
 def main(*args, **kwargs):
@@ -136,6 +139,12 @@ def main(*args, **kwargs):
             default=None, help='Size of image processing pool.')
     parser.add_argument('--root-dir', dest='root_dir', type=str,
             help='Root directory containing photo galleries')
+    parser.add_argument('--template-path', dest='template_path', type=str,
+            help='Directory containing template files')
+    parser.add_argument('--site-uri', dest='site_uri', type=str,
+            help='Site URI')
+    parser.add_argument('--static-uri', dest='static_uri', type=str,
+            help='Static resource URI')
 
     args = parser.parse_args(*args, **kwargs)
 
@@ -144,7 +153,10 @@ def main(*args, **kwargs):
             format='%(asctime)s %(levelname)10s '\
                     '%(name)16s %(process)d/%(threadName)s: %(message)s')
 
-    application = GalleryApp(root_dir=args.root_dir)
+    application = GalleryApp(root_dir=args.root_dir,
+            static_uri=args.static_uri,
+            site_uri=args.site_uri,
+            template_path=args.template_path)
     http_server = HTTPServer(application)
     http_server.listen(port=args.listen_port, address=args.listen_address)
     IOLoop.current().start()
