@@ -79,8 +79,10 @@ class Gallery(Mapping):
         self._collection = ref(collection)
         self._fs_node = gallery_node
 
-        self._content = None
         self._content_mtime = 0
+        self._content = None
+        self._content_prev_order = None
+        self._content_next_order = None
 
     @property
     def name(self):
@@ -118,7 +120,23 @@ class Gallery(Mapping):
             self._content = OrderedDict(sorted(content.items(),
                 key=lambda i : i[0]))
             self._content_mtime = content_mtime_now
+            self._content_prev_order = None
+            self._content_next_order = None
         return self._content
+
+    def _get_prev(self, name):
+        if self._content_prev_order is None:
+            content = list(self._get_content().keys())
+            self._content_prev_order = dict(zip(
+                content[1:], content[:-1]))
+        return self._content_prev_order[name]
+
+    def _get_next(self, name):
+        if self._content_next_order is None:
+            content = list(self._get_content().keys())
+            self._content_next_order = dict(zip(
+                content[:-1], content[1:]))
+        return self._content_next_order[name]
 
     @property
     def _meta(self):
