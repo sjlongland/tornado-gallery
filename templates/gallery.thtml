@@ -12,7 +12,7 @@ body {
 	<table width="100%" class="controls">
 	<tr>
 		<td class="status"><a class="button"
-			accesskey="i" href="{{site_uri}}?{{page_query}}"
+			accesskey="i" href="{{site_uri}}/?{{page_query}}"
 			target="_top"><img alt="Index"
 			src="{{static_uri}}/images/top.png"
 			border="0" align="absmiddle" /></a></td>
