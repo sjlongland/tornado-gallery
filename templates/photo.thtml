@@ -148,7 +148,7 @@ body {
 				lowsrc="{{site_uri}}/{{gallery.name}}/{{photo.name}}?width={{photo.thumbwidth}}&height={{photo.thumbheight}}&show=on" /></p>
 	
 	<div class="photodesc">
-		{% raw photo.description %}
+		{% raw photo.description or '' %}
 	</div>
 {% end %}
 
