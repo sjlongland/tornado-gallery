@@ -12,25 +12,25 @@ body {
 	function getData() {
 		var data = {
 		CGI: {
-			ScriptName: {{ dumps(site_uri) }}
+			ScriptName: {% raw dumps(site_uri) %}
 		},
 		gallery: {
-			name: {{ dumps(gallery.name) }},
-			title: {{ dumps(gallery.title) }},
-			desc: {{ dumps(gallery.desc) }},
-			first: {{ dumps(gallery.first) }},
-			last: {{ dumps(gallery.last) }}
+			name: {% raw dumps(gallery.name) %},
+			title: {% raw dumps(gallery.title) %},
+			desc: {% raw dumps(gallery.desc) %},
+			first: {% raw dumps(gallery.first) %},
+			last: {% raw dumps(gallery.last) %}
 		},
-		settings: {{ dumps(settings) }},
+		settings: {% raw dumps(settings) %},
 		photo: {
 			origwidth: {{photo.width}},
 			origheight: {{photo.height}},
 			width: {{width}},
 			height: {{height}},
-			annotation: {{ dumps(photo.annotation or '') }},
-			name: {{ dumps(photo.name) }},
-			previous: {{ dumps(photo.prev) }},
-			next: {{ dumps(photo.next) }},
+			annotation: {% raw dumps(photo.annotation or '') %},
+			name: {% raw dumps(photo.name) %},
+			previous: {% raw dumps(photo.prev) %},
+			next: {% raw dumps(photo.next) %},
 			zoom: 	Math.round( 100*({{width}}) /
 				{{photo.width}})/100
 		}};
@@ -43,7 +43,7 @@ body {
 	document.defaultZoom =
 			Math.round( 100*({{width}}) /
 				{{photo.width}})/100;
-	document.rotation = {{settings['rotation']}}-0;
+	document.rotation = {{settings['rotation'] or 0}}-0;
 	</script>
 	<script lang="text/javascript" src="{{static_uri}}/lib.js"></script>
 	<script lang="text/javascript" src="{{static_uri}}/wheellib.js"></script>
