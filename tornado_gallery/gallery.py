@@ -111,6 +111,8 @@ class Gallery(Mapping):
             content = {}
             for name in self._fs_node:
                 # Grab the file extension and analyse
+                if '.' not in name:
+                    continue
                 (_, ext) = name.rsplit('.',1)
                 if ext.lower() not in ('jpg', 'jpe', 'jpeg', 'gif',
                                         'png', 'tif', 'tiff', 'bmp',):
