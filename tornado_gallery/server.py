@@ -65,13 +65,15 @@ class GalleryHandler(RequestHandler):
         gallery = self.application._collection[gallery_name]
 
         self.set_status(200)
-        self.set_header('Content-Type', 'text/plain')
-        self.write('''Gallery handler
------------------------------------------------------------------------
-''' + '\n'.join([
-    '%-24s: %s' % (p.name, p.annotation)
-    for p in gallery.values()
-]))
+        self.render('gallery.thtml',
+                site_name=self.application._site_name or \
+                        '%s Galleries' % (self.request.host),
+                static_uri=self.application._static_uri,
+                site_uri=self.application._site_uri,
+                page_query=self.request.query,
+                gallery=gallery,
+                photos=list(gallery.values())
+        )
 
 
 class PhotoHandler(RequestHandler):
