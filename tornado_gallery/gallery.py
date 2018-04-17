@@ -155,6 +155,14 @@ class Gallery(Mapping):
                 quality=quality, rotation=rotation, img_format=img_format)
         raise Return(result)
 
+    @property
+    def first(self):
+        return list(self._get_content().keys())[0]
+
+    @property
+    def last(self):
+        return list(self._get_content().keys())[-1]
+
     # Collection services
     @property
     def _meta_cache(self):
