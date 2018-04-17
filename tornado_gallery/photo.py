@@ -64,7 +64,7 @@ class Photo(object):
     @property
     def annotation(self):
         try:
-            return self._meta_node['.annotation']
+            return self._get_meta('.annotation')
         except KeyError:
             try:
                 return self._gallery()._meta[self._fs_node.base_name]
@@ -74,7 +74,7 @@ class Photo(object):
     @property
     def description(self):
         try:
-            return self._meta_node['.description']
+            return self._get_meta('.description')
         except KeyError:
             return None
 
@@ -119,7 +119,7 @@ class Photo(object):
             meta = self._meta_node
         except KeyError:
             # Retrieve from the parent
-            return self._gallery._meta[self.name, key]
+            return self._gallery()._meta[self.name, key]
 
         return self._gallery()._meta_cache[meta][key]
 
