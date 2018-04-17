@@ -128,6 +128,8 @@ class ResizerPool(object):
                 error_callback=future.set_exception)
             (img_format, file_name, file_data) = yield future
             raise Return((img_format, file_name, file_data))
+        except Return:
+            raise
         except:
             self._log.exception('Error resizing photo; gallery: %s, photo: %s, '\
                     'width: %d, height: %d, quality: %f, rotation: %f, format: %s',
