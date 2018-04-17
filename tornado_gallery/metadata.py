@@ -76,5 +76,5 @@ class MetadataCache(Cache):
 
     def __getitem__(self, filename):
         if isinstance(filename, Node):
-            filename = node.abs_path
+            filename = filename.abs_path
         return super(MetadataCache, self).__getitem__(filename)
