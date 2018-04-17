@@ -51,7 +51,8 @@ class RootHandler(RequestHandler):
     def get(self):
         self.set_status(200)
         self.render('index.thtml',
-                site_name='site_name',
+                site_name=self.application._site_name or \
+                        '%s Galleries' % (self.request.host),
                 static_uri=self.application._static_uri,
                 site_uri=self.application._site_uri,
                 page_query=self.request.query,
@@ -103,11 +104,14 @@ Annotation: %s
 
 
 class GalleryApp(Application):
-    def __init__(self, root_dir, static_uri, site_uri,
+    def __init__(self, root_dir, static_uri, static_path,
+            site_name, site_uri,
             cache_subdir=CACHE_DIR_NAME,
             num_proc=None, cache_expiry=300.0,
             cache_stat_expiry=1.0, **kwargs):
-        self._static_uri = static_uri
+        self._static_uri = static_uri[:-1] if static_uri.endswith('/') \
+                            else static_uri
+        self._site_name = site_name
         self._site_uri = site_uri
         self._collection = GalleryCollection(
                 root_dir=root_dir,
@@ -120,7 +124,10 @@ class GalleryApp(Application):
                 PhotoHandler),
             (r"/([a-zA-Z0-9_\-]+)/?", GalleryHandler),
             (r"/", RootHandler),
-        ], **kwargs)
+        ],
+        static_url_prefix=static_uri,
+        static_path=static_path,
+        **kwargs)
 
 
 def main(*args, **kwargs):
@@ -140,11 +147,15 @@ def main(*args, **kwargs):
     parser.add_argument('--root-dir', dest='root_dir', type=str,
             help='Root directory containing photo galleries')
     parser.add_argument('--template-path', dest='template_path', type=str,
-            help='Directory containing template files')
+            help='Directory containing template files', default='../templates')
+    parser.add_argument('--site-name', dest='site_name', type=str,
+            help='Photo Galleries')
     parser.add_argument('--site-uri', dest='site_uri', type=str,
-            help='Site URI')
+            help='Site URI', default='')
     parser.add_argument('--static-uri', dest='static_uri', type=str,
-            help='Static resource URI')
+            help='Static resource URI', default='/static/')
+    parser.add_argument('--static-path', dest='static_path', type=str,
+            help='Static resource path', default='../templates')
 
     args = parser.parse_args(*args, **kwargs)
 
@@ -155,6 +166,8 @@ def main(*args, **kwargs):
 
     application = GalleryApp(root_dir=args.root_dir,
             static_uri=args.static_uri,
+            static_path=args.static_path,
+            site_name=args.site_name,
             site_uri=args.site_uri,
             template_path=args.template_path)
     http_server = HTTPServer(application)
