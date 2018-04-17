@@ -1,7 +1,7 @@
 {% extends "master.thtml" %}
-{% from json import dumps %}
 {# vim: set ts=8 noet sw=8 syn=html fileencoding=utf-8: #}
 {% block html_head %}
+	{% from json import dumps %}
 	<style type="text/css">
 body {
 	margin-top: 100px;
@@ -12,7 +12,7 @@ body {
 	function getData() {
 		var data = {
 		CGI: {
-			ScriptName: {{ dumps(CGI.ScriptName) }}
+			ScriptName: {{ dumps(site_uri) }}
 		},
 		gallery: {
 			name: {{ dumps(gallery.name) }},
@@ -21,25 +21,18 @@ body {
 			first: {{ dumps(gallery.first) }},
 			last: {{ dumps(gallery.last) }}
 		},
-		settings: {
-			width: {{settings.width}},
-			height: {{settings.height}},
-			quality: {{settings.quality}},
-			rotation: {{settings.rotation}}-0
-		},
+		settings: {{ dumps(settings) }},
 		photo: {
-			origwidth: {{photo.origwidth}},
-			origheight: {{photo.origheight}},
-			width: {{photo.width}},
-			height: {{photo.height}},
+			origwidth: {{photo.width}},
+			origheight: {{photo.height}},
+			width: {{width}},
+			height: {{height}},
 			annotation: {{ dumps(photo.annotation) }},
-			thumbnail: {{ dumps(photo.thumbnails) }},
-			resized: {{ dumps(photo.resized) }},
 			name: {{ dumps(photo.name) }},
-			previous: {{ dumps(photo.previous) }},
+			previous: {{ dumps(photo.prev) }},
 			next: {{ dumps(photo.next) }},
-			zoom: 	Math.round( 100*({{photo.width}}) /
-				{{photo.origwidth}})/100
+			zoom: 	Math.round( 100*({{width}}) /
+				{{photo.width}})/100
 		}};
 		if ( document.data )
 			data = document.data;
@@ -48,9 +41,9 @@ body {
 		return( data );
 	}
 	document.defaultZoom =
-			Math.round( 100*({{photo.width}}) /
-				{{photo.origwidth}})/100;
-	document.rotation = {{settings.rotation}}-0;
+			Math.round( 100*({{width}}) /
+				{{photo.width}})/100;
+	document.rotation = {{settings['rotation']}}-0;
 	</script>
 	<script lang="text/javascript" src="{{static_uri}}/lib.js"></script>
 	<script lang="text/javascript" src="{{static_uri}}/wheellib.js"></script>
@@ -63,8 +56,8 @@ body {
 				alt="|&lt;- First" src="{{static_uri}}/images/start.png"
 				border="0" align="absmiddle" /></a></td>
 		<td class="prevlink"><a class="button" accesskey=","
-			href="{{site_uri}}/{{gallery.name}}/{{photo.previous}}?{{page_query}}"><img
-				alt="&lt;- Prev" src="{{uri}}/templates/images/back.png"
+			href="{{site_uri}}/{{gallery.name}}/{{photo.prev}}?{{page_query}}"><img
+				alt="&lt;- Prev" src="{{static_uri}}/images/back.png"
 				border="0" align="absmiddle" /></a></td>
 		<td class="status"><a class="button" accesskey="l"
 			href="{{site_uri}}/{{gallery.name}}?{{page_query}}" target="_top"><img
@@ -97,9 +90,9 @@ body {
 	<form>
 		<a name="adjust"></a>
 		Resize:	<input type="text"	name="width" id="width"
-						value="{{photo.width}}" size="3" /> x
+						value="{{width}}" size="3" /> x
 			<input type="text"	name="height" id="height"
-						value="{{photo.height}}" size="3" />
+						value="{{height}}" size="3" />
 		Rotation:
 			<input type="text" 	name="rotation" id="rotate"
 						value="0.000" size="5" />
@@ -148,14 +141,14 @@ body {
 	</tr>
 	</table>
 	<p align="center"><img	id="photoimg"
-				width="{{photo.width}}"
-				height="{{photo.height}}"
-				src="{{static_uri}}/{{photo.resized}}"
+				width="{{width}}"
+				height="{{height}}"
+				src="{{site_uri}}/{{gallery.name}}/{{photo.name}}?width={{width}}&height={{height}}&show=on"
 				alt="{{photo.annotation}}"
-				lowsrc="{{static_uri}}/{{photo.thumbnail}}" /></p>
+				lowsrc="{{site_uri}}/{{gallery.name}}/{{photo.name}}?width={{photo.thumbwidth}}&height={{photo.thumbheight}}&show=on" /></p>
 	
 	<div class="photodesc">
-		{{photo.description}}
+		{% raw photo.description %}
 	</div>
 {% end %}
 
