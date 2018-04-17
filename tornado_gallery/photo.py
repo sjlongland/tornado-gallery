@@ -72,6 +72,13 @@ class Photo(object):
                 return None
 
     @property
+    def description(self):
+        try:
+            return self._meta_node['.description']
+        except KeyError:
+            return None
+
+    @property
     def preferred_width(self):
         try:
             return self._get_meta('.width')
