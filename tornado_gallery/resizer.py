@@ -88,10 +88,7 @@ class ResizerPool(object):
 
         # Do we need to compute full dimensions?
         if (width is None) or (height is None):
-            image = Image.open(open(orig_node.abs_path,'rb'))
-
-            # Retrieve the dimensions and figure out what's missing.
-            raw_width, raw_height = image.size
+            raw_width, raw_height = yield self.get_dimensions(gallery, photo)
             ratio = float(raw_width) / float(raw_height)
 
             if (ratio >= 1.0) or (height is None):
@@ -195,3 +192,13 @@ class ResizerPool(object):
         log.info('Returning resized result')
         return (img_format, cache_name,
                 open(cache_node.abs_path, 'rb').read())
+
+    def get_properties(self, gallery, photo):
+        """
+        Return the raw properties of the photo.
+        """
+
+        img_node = self._fs_node.join_node(gallery, photo)
+        img = Image.open(open(img_node.abs_path,'rb'))
+        (width, height) = img.size
+        return dict(width=width, height=height)
