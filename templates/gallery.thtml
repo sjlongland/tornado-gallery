@@ -11,17 +11,17 @@ body {
 {% block html_body %}
 	<table width="100%" class="controls">
 	<tr>
-		<td class="status"><a class="button" 
+		<td class="status"><a class="button"
 			accesskey="i" href="{{site_uri}}?{{page_query}}"
-			target="_top"><img alt="Index" 
-			src="{{static_uri}}/templates/images/top.png" 
+			target="_top"><img alt="Index"
+			src="{{static_uri}}/images/top.png"
 			border="0" align="absmiddle" /></a></td>
 
 	</tr>
 	<tr>
 		<td class="status">
-			<h1 align="center">{{gallery_title}}</h1>
-			<p align="center">{{gallery_desc}}</p>
+			<h1 align="center">{{gallery.title}}</h1>
+			<p align="center">{% raw gallery.desc %}</p>
 		</td>
 	</tr>
 	</table>
@@ -33,7 +33,7 @@ body {
 			{% set hh = p.thumbheight / 2 %}
 			{% set xpad = 60 - hw %}
 			{% set ypad = 60 - hh %}
-			<a href="{{site_uri}}/{{gallery_name}}/{{p.name}}?{{page_query}}"><img src="{{p.thumbnail}}"
+			<a href="{{site_uri}}/{{gallery.name}}/{{p.name}}?{{page_query}}"><img src="{{p.thumbnail}}"
 					align="absmiddle"
 					width="{{p.thumbwidth}}"
 					height="{{p.thumbheight}}"

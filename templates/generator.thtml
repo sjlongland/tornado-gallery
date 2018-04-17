@@ -31,7 +31,7 @@ body {
 			document.photo.src = '';
 			document.last = document.data;
 			eval( 'document.data = (' + this.responseText + ');' );
-			var ratio = document.data.photo.origwidth / 
+			var ratio = document.data.photo.origwidth /
 				document.data.photo.origheight;
 			if ( ratio > 1 ) {
 				document.photo.width = 400;
@@ -45,14 +45,14 @@ body {
 			var index = Math.floor(document.data.photo.index);
 			var count = Math.floor(document.data.gallery.length);
 			var progress = Math.round(
-					100*( index + 1 ) 
+					100*( index + 1 )
 					/ count );
 			document.progress.style.width = progress + '%';
 			document.progress.innerHTML = progress+'%';
 			document.xhr.onreadystatechange = display;
 			if (	( document.data.photo.width <= 100 ) &&
 				( document.data.photo.height <= 100 ) ) {
-				document.xhr.open('GET', 
+				document.xhr.open('GET',
 						'{{site_uri}}/'
 						+ document.data.gallery.name
 						+ '/'
@@ -66,12 +66,12 @@ body {
 						+ '/'
 						+ document.last.photo.name;
 				document.lastphoto.src = '';
-				document.lastphoto.width = 
+				document.lastphoto.width =
 					document.photo.width;
-				document.lastphoto.height = 
+				document.lastphoto.height =
 					document.photo.height;
 				document.lastphoto.src = document.photo.src;
-				if ( document.data.photo.name != 
+				if ( document.data.photo.name !=
 						document.data.photo.next ) {
 					document.xhr.open('GET',
 						'{{site_uri}}/'
@@ -91,7 +91,7 @@ body {
 		document.lastphoto = document.getElementById('lastphoto');
 		document.photo = document.getElementById('photo');
 		document.progress = document.getElementById('progdone');
-		document.base = window.location.protocol 
+		document.base = window.location.protocol
 				+ window.location.host;
 		document.thumbdata = '&width=100&height=100&quality=25';
 		document.scaledata 	= '&width={{settings.width}}'
@@ -105,15 +105,15 @@ body {
 		document.xhr.send(null);
 	}
 	</script>
-	<script lang="text/javascript" src="{{static_uri}}/templates/lib.js"></script>
-	<script lang="text/javascript" src="{{static_uri}}/templates/wheellib.js"></script>
+	<script lang="text/javascript" src="{{static_uri}}/lib.js"></script>
+	<script lang="text/javascript" src="{{static_uri}}/wheellib.js"></script>
 {% end %}
 
 {% block html_body %}
 	<div id="progress">
 		<div id="progdone"></div>
 	</div>
-	<a href="#" id="lastphotolink" target="_blank">	<img id="lastphoto" 
+	<a href="#" id="lastphotolink" target="_blank">	<img id="lastphoto"
 		alt="" width="400" height="300" /></a>
 	<img id="photo" alt="" width="400" height="300" />
 	<p>

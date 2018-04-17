@@ -38,7 +38,7 @@ body {
 			name: {{ dumps(photo.name) }},
 			previous: {{ dumps(photo.previous) }},
 			next: {{ dumps(photo.next) }},
-			zoom: 	Math.round( 100*({{photo.width}}) / 
+			zoom: 	Math.round( 100*({{photo.width}}) /
 				{{photo.origwidth}})/100
 		}};
 		if ( document.data )
@@ -48,19 +48,19 @@ body {
 		return( data );
 	}
 	document.defaultZoom =
-			Math.round( 100*({{photo.width}}) / 
+			Math.round( 100*({{photo.width}}) /
 				{{photo.origwidth}})/100;
 	document.rotation = {{settings.rotation}}-0;
 	</script>
-	<script lang="text/javascript" src="{{static_uri}}/templates/lib.js"></script>
-	<script lang="text/javascript" src="{{static_uri}}/templates/wheellib.js"></script>
+	<script lang="text/javascript" src="{{static_uri}}/lib.js"></script>
+	<script lang="text/javascript" src="{{static_uri}}/wheellib.js"></script>
 {% end %}
 {% block html_body %}
 	<table width="100%" class="controls" id="controls">
 	<tr>
 		<td class="firstlink"><a class="button" accesskey="["
-			href="{{site_uri}}/{{gallery.name}}/{{gallery.first}}?{{page_query}}"><img 
-				alt="|&lt;- First" src="{{static_uri}}/templates/images/start.png" 
+			href="{{site_uri}}/{{gallery.name}}/{{gallery.first}}?{{page_query}}"><img
+				alt="|&lt;- First" src="{{static_uri}}/images/start.png"
 				border="0" align="absmiddle" /></a></td>
 		<td class="prevlink"><a class="button" accesskey=","
 			href="{{site_uri}}/{{gallery.name}}/{{photo.previous}}?{{page_query}}"><img
@@ -68,28 +68,28 @@ body {
 				border="0" align="absmiddle" /></a></td>
 		<td class="status"><a class="button" accesskey="l"
 			href="{{site_uri}}/{{gallery.name}}?{{page_query}}" target="_top"><img
-				alt="Album" src="{{static_uri}}/templates/images/up.png"
+				alt="Album" src="{{static_uri}}/images/up.png"
 				border="0" align="absmiddle" /></a></td>
 		<td class="status"><a class="button" accesskey="a"
 			href="#adjust" target="_top" onclick="toggleadj();"><img
-				alt="Adjust" src="{{static_uri}}/templates/images/configure.png"
+				alt="Adjust" src="{{static_uri}}/images/configure.png"
 				border="0" align="absmiddle" /></a></td>
 		<td class="status"><a class="button" accesskey="i"
 			href="{{site_uri}}?{{page_query}}"
 				target="_top"><img alt="Index"
-				src="{{static_uri}}/templates/images/top.png"
+				src="{{static_uri}}/images/top.png"
 				border="0" align="absmiddle" /></a></td>
 		<td class="nextlink"><a class="button" accesskey="."
-			href="{{site_uri}}/{{gallery.name}}/{{photo.next}}?{{page_query}}"><img alt="-&gt; Next" src="{{static_uri}}/templates/images/forward.png" border="0"
+			href="{{site_uri}}/{{gallery.name}}/{{photo.next}}?{{page_query}}"><img alt="-&gt; Next" src="{{static_uri}}/images/forward.png" border="0"
 				align="absmiddle" /></a></td>
 		<td class="lastlink"><a class="button" accesskey="]"
 			href="{{site_uri}}/{{gallery.name}}/{{gallery.last}}?{{page_query}}"><img
-				alt="-&gt;| Last" src="{{static_uri}}/templates/images/finish.png"
+				alt="-&gt;| Last" src="{{static_uri}}/images/finish.png"
 				border="0" align="absmiddle" /></a></td>
 	</tr>
 	<tr>
 		<td class="status" colspan="7">
-			{{photo.annotation}} ({{photo.name}})
+			{% raw photo.annotation %} ({{photo.name}})
 		</td>
 	</tr>
 	<tr id="adjpanel">
@@ -103,8 +103,8 @@ body {
 		Rotation:
 			<input type="text" 	name="rotation" id="rotate"
 						value="0.000" size="5" />
-		Quality: <input type="text"	name="quality" 
-						value="60" size="3" /> 
+		Quality: <input type="text"	name="quality"
+						value="60" size="3" />
 						(100% = PNG)
 		<input type="submit" value="Go" />
 		<br />
@@ -126,11 +126,11 @@ body {
 					value="1" id="wheelZoom" />%
 		or
 		<input type="radio"	name="wheelAction"
-					value="hpan" 
+					value="hpan"
 					id="wheelActionHPan" />
 			<label for="wheelActionHPan">HPan</label>
 		<input type="radio"	name="wheelAction"
-					value="vpan" checked 
+					value="vpan" checked
 					id="wheelActionVPan" />
 			<label for="wheelActionVPan">VPan</label>
 		by <input type="text"	name="wheelPan" size="2"
@@ -150,8 +150,8 @@ body {
 	<p align="center"><img	id="photoimg"
 				width="{{photo.width}}"
 				height="{{photo.height}}"
-				src="{{static_uri}}/{{photo.resized}}" 
-				alt="{{photo.annotation}}" 
+				src="{{static_uri}}/{{photo.resized}}"
+				alt="{{photo.annotation}}"
 				lowsrc="{{static_uri}}/{{photo.thumbnail}}" /></p>
 	
 	<div class="photodesc">

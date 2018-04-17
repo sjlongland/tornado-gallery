@@ -11,7 +11,7 @@
 		<div style="border: 1px solid #ccc; display: block;">
 			<h2><a style="display: block; text-align: center; padding: 0.5em;"
 				href="{{site_uri}}/{{g.name}}?{{page_query}}">{{g.title}}</a></h2>
-			<p style="padding-left: 1em; padding-right: 1em; text-align: center;">{{g.desc}}</p>
+			<p style="padding-left: 1em; padding-right: 1em; text-align: center;">{% raw g.desc %}</p>
 		</div>
 		<div style="height: 1em;"></div>
 		{% end %}
