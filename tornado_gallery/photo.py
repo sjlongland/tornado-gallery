@@ -51,13 +51,13 @@ class Photo(object):
         if ratio > 1.0:
             return THUMB_SIZE
         else:
-            return THUMB_SIZE / ratio
+            return int((THUMB_SIZE * ratio) + 0.5)
 
     @property
     def thumbheight(self):
         ratio = self.ratio
         if ratio > 1.0:
-            return THUMB_SIZE / ratio
+            return int((THUMB_SIZE / ratio) + 0.5)
         else:
             return THUMB_SIZE
 
