@@ -82,15 +82,31 @@ class PhotoHandler(RequestHandler):
         gallery = self.application._collection[gallery_name]
         photo = gallery[photo_name]
 
+        # Figure out view width/height
+        width=self.get_query_argument('width', 720)
+        height=self.get_query_argument('height', None)
+
+        if width is not None:
+            width = int(width or 0)
+        if height is not None:
+            height = int(height or 0)
+
+        orig_width = photo.width
+        orig_height = photo.height
+        if not width:
+            if height:
+                width = int((height * photo.ratio) + 0.5)
+            else:
+                width = orig_width
+
+        if not height:
+            if width:
+                height = int((width / photo.ratio) + 0.5)
+            else:
+                height = orig_height
+
         show_photo = self.get_query_argument('show', False) == 'on'
         if show_photo:
-            width=self.get_query_argument('width', 720)
-            height=self.get_query_argument('height', None)
-
-            if width is not None:
-                width = int(width)
-            if height is not None:
-                height = int(height)
 
             (img_format, cache_name, img_data) = \
                     yield photo.get_resized(
@@ -107,12 +123,23 @@ class PhotoHandler(RequestHandler):
             return
 
         self.set_status(200)
-        self.set_header('Content-Type', 'text/plain')
-        self.write('''Photo handler
------------------------------------------------------------------------
-Photo: %s
-Annotation: %s
-''' % (photo.name, photo.annotation))
+        self.render('photo.thtml',
+                site_name=self.application._site_name or \
+                        '%s Galleries' % (self.request.host),
+                static_uri=self.application._static_uri,
+                site_uri=self.application._site_uri,
+                page_query=self.request.query,
+                gallery=gallery,
+                photo=photo,
+                width=width,
+                height=height,
+                settings={
+                    'width': self.get_query_argument('width', None),
+                    'height': self.get_query_argument('height', None),
+                    'quality': self.get_query_argument('quality', None),
+                    'rotation': self.get_query_argument('rotation', None),
+                }
+        )
 
 
 class GalleryApp(Application):
