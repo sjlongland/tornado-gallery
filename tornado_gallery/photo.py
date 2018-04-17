@@ -4,6 +4,9 @@ from weakref import ref
 from tornado.gen import coroutine, Return
 
 
+THUMB_SIZE = 100
+
+
 class Photo(object):
     """
     Representation of a photo in a gallery.
@@ -12,10 +15,51 @@ class Photo(object):
     def __init__(self, gallery, fs_node):
         self._gallery = ref(gallery)
         self._fs_node = fs_node
+        self._properties = None
+        self._properties_mtime = 0
+
+    def _get_property(self, key=None):
+        file_mtime = self._fs_node.stat.st_mtime
+        if file_mtime > self._properties_mtime:
+            self._properties = self._resizer_pool.get_properties(
+                    self._gallery().name,
+                    self.name)
+            self._properties_mtime = file_mtime
+        if key is not None:
+            return self._properties[key]
+        return self._properties
 
     @property
     def name(self):
         return self._fs_node.base_name
+
+    @property
+    def width(self):
+        return self._get_property('width')
+
+    @property
+    def height(self):
+        return self._get_property('height')
+
+    @property
+    def ratio(self):
+        return float(self.width)/float(self.height)
+
+    @property
+    def thumbwidth(self):
+        ratio = self.ratio
+        if ratio > 1.0:
+            return THUMB_SIZE
+        else:
+            return THUMB_SIZE / ratio
+
+    @property
+    def thumbheight(self):
+        ratio = self.ratio
+        if ratio > 1.0:
+            return THUMB_SIZE / ratio
+        else:
+            return THUMB_SIZE
 
     @property
     def annotation(self):
