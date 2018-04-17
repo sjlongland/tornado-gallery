@@ -168,6 +168,7 @@ class ResizerPool(object):
         log.debug('Resized file: %s', cache_name)
 
         # Do we have this file?
+        cache_path = self._cache_node.join(cache_name)
         try:
             cache_node = self._cache_node[cache_name]
             # We do, is it same age/newer and non-zero sized?
@@ -186,12 +187,12 @@ class ResizerPool(object):
         resized = orig.resize((width, height), Image.LANCZOS)
 
         # Write out the new file.
-        resized.save(open(cache_node.abs_path,'rb'), img_format.pil_fmt)
+        resized.save(open(cache_path,'wb'), img_format.pil_fmt)
 
         # Return to caller
         log.info('Returning resized result')
         return (img_format, cache_name,
-                open(cache_node.abs_path, 'rb').read())
+                open(cache_path, 'rb').read())
 
     def get_properties(self, gallery, photo):
         """
