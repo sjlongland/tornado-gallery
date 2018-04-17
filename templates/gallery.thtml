@@ -6,7 +6,7 @@ body {
 	margin-top: 200px;
 }
 	</style>
-	<title>Gallery: {{gallery_title}}</title>
+	<title>Gallery: {{gallery.title}}</title>
 {% end %}
 {% block html_body %}
 	<table width="100%" class="controls">
