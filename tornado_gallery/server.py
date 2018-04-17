@@ -84,12 +84,22 @@ class PhotoHandler(RequestHandler):
 
         show_photo = self.get_query_argument('show', False) == 'on'
         if show_photo:
+            width=self.get_query_argument('width', 720)
+            height=self.get_query_argument('height', None)
+
+            if width is not None:
+                width = int(width)
+            if height is not None:
+                height = int(height)
+
             (img_format, cache_name, img_data) = \
                     yield photo.get_resized(
-                            width=self.get_query_argument('width', 720),
-                            height=self.get_query_argument('height', None),
-                            quality=self.get_query_argument('quality', 60.0),
-                            rotation=self.get_query_argument('rotation', 0.0),
+                            width=width,
+                            height=height,
+                            quality=float(self.get_query_argument(
+                                'quality', 60.0)),
+                            rotation=float(self.get_query_argument(
+                                'rotation', 0.0)),
                             img_format=self.get_query_argument('format', None))
             self.set_status(200)
             self.set_header('Content-Type', img_format.value)
