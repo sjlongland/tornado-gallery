@@ -38,7 +38,7 @@ body {
 					width="{{p.thumbwidth}}"
 					height="{{p.thumbheight}}"
 					style="padding-left: {{xpad}}px; padding-right: {{xpad}}px; padding-top: {{ypad}}px; padding-bottom: {{ypad}}px;"
-					alt="{{p.annotation}}" /></a>
+					alt="{{p.annotation or p.name}}" /></a>
 		{% end %}
 	{% end %}
 	</p>

@@ -7,7 +7,7 @@ body {
 	margin-top: 100px;
 }
 	</style>
-	<title>Image: {{photo.annotation}} ({{photo.name}})</title>
+	<title>Image: {{photo.annotation or ''}} ({{photo.name}})</title>
 	<script lang="type/javascript">
 	function getData() {
 		var data = {
@@ -27,7 +27,7 @@ body {
 			origheight: {{photo.height}},
 			width: {{width}},
 			height: {{height}},
-			annotation: {{ dumps(photo.annotation) }},
+			annotation: {{ dumps(photo.annotation or '') }},
 			name: {{ dumps(photo.name) }},
 			previous: {{ dumps(photo.prev) }},
 			next: {{ dumps(photo.next) }},
@@ -82,7 +82,7 @@ body {
 	</tr>
 	<tr>
 		<td class="status" colspan="7">
-			{% raw photo.annotation %} ({{photo.name}})
+			{% raw photo.annotation or '' %} ({{photo.name}})
 		</td>
 	</tr>
 	<tr id="adjpanel">
@@ -144,7 +144,7 @@ body {
 				width="{{width}}"
 				height="{{height}}"
 				src="{{site_uri}}/{{gallery.name}}/{{photo.name}}?width={{width}}&height={{height}}&show=on"
-				alt="{{photo.annotation}}"
+				alt="{{photo.annotation or photo.name}}"
 				lowsrc="{{site_uri}}/{{gallery.name}}/{{photo.name}}?width={{photo.thumbwidth}}&height={{photo.thumbheight}}&show=on" /></p>
 	
 	<div class="photodesc">
