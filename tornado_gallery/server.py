@@ -280,7 +280,8 @@ def main(*args, **kwargs):
             static_path=args.static_path,
             site_name=args.site_name,
             site_uri=args.site_uri,
-            template_path=args.template_path)
+            template_path=args.template_path,
+            num_proc=args.process_count)
     http_server = HTTPServer(application)
     http_server.listen(port=args.listen_port, address=args.listen_address)
     IOLoop.current().start()
