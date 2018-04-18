@@ -143,7 +143,7 @@ body {
 	<p align="center"><img	id="photoimg"
 				width="{{width}}"
 				height="{{height}}"
-				src="{{site_uri}}/{{gallery.name}}/{{photo.name}}?width={{width}}&height={{height}}&show=on"
+				src="{{site_uri}}/{{photo.get_rel_uri(**settings)}}"
 				alt="{{photo.annotation or photo.name}}"
 				lowsrc="{{site_uri}}/{{gallery.name}}/{{photo.name}}?width={{photo.thumbwidth}}&height={{photo.thumbheight}}&show=on" /></p>
 	
