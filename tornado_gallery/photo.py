@@ -61,7 +61,7 @@ class Photo(object):
                             except:
                                 pass
                         return out
-                    return out
+                    return obj
                 self._properties['exif'] = _strip_blobs(exif)
 
             self._properties_mtime = file_mtime
