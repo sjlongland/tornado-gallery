@@ -165,6 +165,15 @@ class Gallery(Mapping):
     def last(self):
         return list(self._get_content().keys())[-1]
 
+    @property
+    def meta(self):
+        return {
+                'name': self.name,
+                'title': self.title,
+                'desc': self.desc,
+                'content': list(self.keys())
+        }
+
     # Collection services
     @property
     def _meta_cache(self):
