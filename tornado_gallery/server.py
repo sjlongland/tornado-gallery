@@ -6,6 +6,8 @@ import uuid
 import datetime
 import pytz
 import json
+import os.path
+
 
 from tornado.web import Application, RequestHandler, \
         RedirectHandler, MissingArgumentError
@@ -255,7 +257,8 @@ def main(*args, **kwargs):
     parser.add_argument('--root-dir', dest='root_dir', type=str,
             help='Root directory containing photo galleries')
     parser.add_argument('--template-path', dest='template_path', type=str,
-            help='Directory containing template files', default='../templates')
+            help='Directory containing template files', default=os.path.realpath(
+                os.path.join(os.path.dirname(__file__), 'static')))
     parser.add_argument('--site-name', dest='site_name', type=str,
             help='Photo Galleries')
     parser.add_argument('--site-uri', dest='site_uri', type=str,
@@ -263,7 +266,8 @@ def main(*args, **kwargs):
     parser.add_argument('--static-uri', dest='static_uri', type=str,
             help='Static resource URI', default='/static/')
     parser.add_argument('--static-path', dest='static_path', type=str,
-            help='Static resource path', default='../templates')
+            help='Static resource path', default=os.path.realpath(
+                os.path.join(os.path.dirname(__file__), 'static')))
 
     args = parser.parse_args(*args, **kwargs)
 
