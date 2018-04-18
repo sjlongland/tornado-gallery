@@ -16,11 +16,12 @@ class Photo(object):
         self._gallery = ref(gallery)
         self._fs_node = fs_node
         self._properties = None
-        self._properties_mtime = 0
+        self._properties_mtime = None
 
     def _get_property(self, key=None):
         file_mtime = self._fs_node.stat.st_mtime
-        if file_mtime > self._properties_mtime:
+        if (self._properties_mtime is None) or \
+                (file_mtime > self._properties_mtime):
             self._properties = self._resizer_pool.get_properties(
                     self._gallery().name,
                     self.name)
