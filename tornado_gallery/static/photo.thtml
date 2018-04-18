@@ -145,7 +145,7 @@ body {
 				height="{{height}}"
 				src="{{site_uri}}/{{photo.get_rel_uri(**settings)}}"
 				alt="{{photo.annotation or photo.name}}"
-				lowsrc="{{site_uri}}/{{gallery.name}}/{{photo.name}}?width={{photo.thumbwidth}}&height={{photo.thumbheight}}&show=on" /></p>
+				lowsrc="{{site_uri}}/{{gallery.name}}/{{photo.name}}}/thumb.jpg" /></p>
 	
 	<div class="photodesc">
 		{% raw photo.description or '' %}
