@@ -8,6 +8,8 @@ from tornado.locks import Semaphore
 import magic
 import logging
 
+from os import makedirs
+
 import multiprocessing
 import multiprocessing.pool
 from weakref import WeakValueDictionary
@@ -155,23 +157,28 @@ class ResizerPool(object):
         orig_node = self._fs_node.join_node(gallery, photo)
 
         # Determine the name of the cache file.
+        photo_noext = '.'.join(photo.split('.')[:-1])
         cache_name = ('%(gallery)s-%(photo)s-'\
                 '%(width)dx%(height)d-'\
                 '%(quality)d-%(rotation).6f.%(ext)s') % {
                     'gallery': gallery,
-                    'photo': '.'.join(photo.split('.')[:-1]),
+                    'photo': photo_noext,
                     'width': width,
                     'height': height,
                     'quality': quality,
                     'rotation': rotation,
                     'ext': img_format.ext
                 }
-        log.debug('Resized file: %s', cache_name)
+        cache_dir = self._cache_node.join(gallery, photo_noext)
+        log.debug('Resized file: %s in %s', cache_name, cache_dir)
+
+        # Ensure the directory exists
+        makedirs(cache_dir, exist_ok=True)
 
         # Do we have this file?
-        cache_path = self._cache_node.join(cache_name)
+        cache_path = self._cache_node.join(cache_dir, cache_name)
         try:
-            cache_node = self._cache_node[cache_name]
+            cache_node = self._cache_node[cache_path]
             # We do, is it same age/newer and non-zero sized?
             if (cache_node.stat.st_size > 0) and \
                     (cache_node.stat.st_mtime >= orig_node.stat.st_mtime):
