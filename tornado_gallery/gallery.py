@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import logging
+import os.path
+
 from cachefs import CacheFs
 from weakref import ref
 from collections import OrderedDict, Mapping
@@ -82,6 +84,7 @@ class Gallery(Mapping):
 
         self._content_mtime = None
         self._content = None
+        self._links = None
         self._content_prev_order = None
         self._content_next_order = None
 
@@ -101,7 +104,12 @@ class Gallery(Mapping):
         return iter(self._get_content().keys())
 
     def __getitem__(self, item):
-        return self._get_content()[item]
+        try:
+            return self._get_content()[item]
+        except KeyError:
+            # Maybe a link?  Redirect!
+            (gallery_name, photo_name) = self._links[item]
+            return self._collection()[gallery_name][photo_name]
 
     def __len__(self):
         return len(self._get_content())
@@ -111,6 +119,7 @@ class Gallery(Mapping):
         if (self._content_mtime is None) or \
                 (self._content_mtime < content_mtime_now):
             content = {}
+            links = {}
             for name in self._fs_node:
                 # Grab the file extension and analyse
                 if '.' not in name:
@@ -119,8 +128,39 @@ class Gallery(Mapping):
                 if ext.lower() not in ('jpg', 'jpe', 'jpeg', 'gif',
                                         'png', 'tif', 'tiff', 'bmp',):
                     continue
+
+                node = self._fs_node[name]
+                if node.is_link:
+                    if not os.path.exists(node.abs_target):
+                        # Broken link
+                        continue
+
+                    # Symbolic link, get the destination relative to the
+                    # root directory.
+                    (gallery_name, photo_name) = os.path.split(
+                            os.path.relpath(node.abs_target,
+                                self._fs_node.parent.abs_path))
+
+                    # Check the gallery actually exists!
+                    if not gallery_name:
+                        # In the root itself, not valid!
+                        continue
+
+                    if os.path.sep in gallery_name:
+                        # Deeply nested or above the root, not valid!
+                        continue
+
+                    if gallery_name == os.path.pardir:
+                        # In directory above root, not valid!
+                        continue
+
+                    # All good
+                    links[name] = (gallery_name, photo_name)
+                    continue
+
                 # This is a photo.
                 content[name] = Photo(self, self._fs_node[name])
+            self._links = links
             self._content = OrderedDict(sorted(content.items(),
                 key=lambda i : i[0]))
             self._content_mtime = content_mtime_now
