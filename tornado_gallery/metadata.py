@@ -22,6 +22,9 @@ class MetadataFile(object):
             root_data = {}
             children_data = {}
             for line in open(self._fs_node.abs_path, 'rt'):
+                if '\t' not in line:
+                    continue
+
                 (key, value) = line.split('\t', 1)
                 if key.startswith('.'):
                     # Either belongs to the root, or the last child.
