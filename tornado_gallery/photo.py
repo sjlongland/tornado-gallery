@@ -118,10 +118,10 @@ class Photo(object):
         # Dimensions and orientation
         uri += '/%sx%s' % (width or '-', height or '-')
         if rotation:
-            uri += '@%f' % rotation
+            uri += '@%f' % float(rotation)
 
         # Quality
-        uri += '/%f' % quality
+        uri += '/%f' % float(quality or 60.0)
 
         # Format; if given
         if img_format is not None:
