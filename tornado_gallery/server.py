@@ -76,7 +76,71 @@ class GalleryHandler(RequestHandler):
         )
 
 
+class ThumbnailHandler(RequestHandler):
+    def get(self, gallery_name, photo_name):
+        gallery = self.application._collection[gallery_name]
+        photo = gallery[photo_name]
+
+        self.redirect(
+                ('%(site)s/%(gallery)s/%(photo)s/%(width)dx%(height)d'\
+                 '@%(rotation)f/%(quality)d/jpeg') % {
+                     'site': self.application._site_uri,
+                     'gallery': gallery.name,
+                     'photo': photo.name,
+                     'width': photo.thumbwidth,
+                     'height': photo.thumbheight,
+                     'rotation': 0,
+                     'quality': 25,
+                 })
+
+
 class PhotoHandler(RequestHandler):
+    @coroutine
+    def get(self, gallery_name, photo_name, width=720, height=None, rotation=None,
+            quality=None, img_format=None):
+        gallery = self.application._collection[gallery_name]
+        photo = gallery[photo_name]
+
+        if (width is not None) or (width == '-'):
+            width = int(width or 0)
+        else:
+            width = None
+
+        if (height is not None) or (height == '-'):
+            height = int(height or 0)
+        else:
+            height = None
+
+        orig_width = photo.width
+        orig_height = photo.height
+        if not width:
+            if height:
+                width = int((height * photo.ratio) + 0.5)
+            else:
+                width = orig_width
+
+        if not height:
+            if width:
+                height = int((width / photo.ratio) + 0.5)
+            else:
+                height = orig_height
+
+        if img_format is not None:
+            img_format = 'image/%s' % img_format
+
+        (img_format, cache_name, img_data) = \
+                yield photo.get_resized(
+                        width=width,
+                        height=height,
+                        quality=float(quality or 60.0),
+                        rotation=float(rotation or 0.0),
+                        img_format=img_format)
+        self.set_status(200)
+        self.set_header('Content-Type', img_format.value)
+        self.write(img_data)
+
+
+class PhotoPageHandler(RequestHandler):
     @coroutine
     def get(self, gallery_name, photo_name):
         gallery = self.application._collection[gallery_name]
@@ -107,19 +171,19 @@ class PhotoHandler(RequestHandler):
 
         show_photo = self.get_query_argument('show', False) == 'on'
         if show_photo:
-
-            (img_format, cache_name, img_data) = \
-                    yield photo.get_resized(
-                            width=width,
-                            height=height,
-                            quality=float(self.get_query_argument(
-                                'quality', 60.0)),
-                            rotation=float(self.get_query_argument(
+            self.redirect(
+                    ('%s/%s') % (
+                         self.application._site_uri,
+                         photo.get_rel_uri(
+                             width, height,
+                             float(self.get_query_argument(
                                 'rotation', 0.0)),
-                            img_format=self.get_query_argument('format', None))
-            self.set_status(200)
-            self.set_header('Content-Type', img_format.value)
-            self.write(img_data)
+                             float(self.get_query_argument(
+                                'quality', 60.0)),
+                             self.get_query_argument('format', None)
+                         )
+                     )
+            )
             return
 
         self.set_status(200)
@@ -159,8 +223,12 @@ class GalleryApp(Application):
                 cache_stat_expiry=cache_stat_expiry)
         super(GalleryApp, self).__init__([
             (r"/.debug", DebugHandler),
-            (r"/([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+\.[a-zA-Z]+)(?:\.html)?",
+            (r"/([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+\.[a-zA-Z]+)/(\d+|-)x(\d+|-)(?:@(\d*\.?\d*))?(?:/(\d*\.?\d*))?(?:/([a-z\-]+))?",
                 PhotoHandler),
+            (r"/([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+\.[a-zA-Z]+)/thumb.jpg",
+                ThumbnailHandler),
+            (r"/([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+\.[a-zA-Z]+)(?:\.html)?",
+                PhotoPageHandler),
             (r"/([a-zA-Z0-9_\-]+)/?", GalleryHandler),
             (r"/", RootHandler),
         ],
