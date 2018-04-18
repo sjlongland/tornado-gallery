@@ -3,6 +3,11 @@
 from weakref import ref
 from tornado.gen import coroutine, Return
 
+try:
+    import piexif
+except ImportError:
+    pass
+
 
 THUMB_SIZE = 100
 
@@ -25,6 +30,40 @@ class Photo(object):
             self._properties = self._resizer_pool.get_properties(
                     self._gallery().name,
                     self.name)
+
+            try:
+                exif = piexif.load(self._fs_node.abs_path,
+                        key_is_name=True)
+            except:
+                # Maybe EXIF is not supported?  Or maybe piexif isn't loaded.
+                exif = None
+
+            if exif is not None:
+                # Decode the EXIF data¸ stripping the blobs
+                # This is an ugly workaround to
+                # https://github.com/hMatoba/Piexif/issues/58
+                def _strip_blobs(obj):
+                    if isinstance(obj, bytes):
+                        return obj.decode('UTF-8')
+                    if isinstance(obj, dict):
+                        out = {}
+                        for key, value in obj.items():
+                            try:
+                                out[key] = _strip_blobs(value)
+                            except:
+                                pass
+                        return out
+                    if isinstance(obj, list) or isinstance(obj, tuple):
+                        out = []
+                        for value in obj:
+                            try:
+                                out.append(_strip_blobs(value))
+                            except:
+                                pass
+                        return out
+                    return out
+                self._properties['exif'] = _strip_blobs(exif)
+
             self._properties_mtime = file_mtime
         if key is not None:
             return self._properties[key]
@@ -112,7 +151,7 @@ class Photo(object):
         """
         Return all the photo metadata.
         """
-        return {
+        meta = {
                 'name': self.name,
                 'original_size': {
                     'width': self.width,
@@ -132,6 +171,14 @@ class Photo(object):
                     'next': self.next
                 },
         }
+
+        # Display EXIF data if available
+        try:
+            meta['exif'] = self._get_property('exif')
+        except KeyError:
+            pass
+
+        return meta
 
     def get_fit_size(self, width=None, height=None):
         """
