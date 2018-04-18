@@ -107,6 +107,52 @@ class Photo(object):
         except KeyError:
             pass
 
+    @property
+    def meta(self):
+        """
+        Return all the photo metadata.
+        """
+        return {
+                'name': self.name,
+                'original_size': {
+                    'width': self.width,
+                    'height': self.height,
+                },
+                'ratio': self.ratio,
+                'thumbnail_size': {
+                    'width': self.thumbwidth,
+                    'height': self.thumbheight,
+                },
+                'preferred_size': {
+                    'width': self.preferred_width,
+                    'height': self.preferred_height,
+                },
+                'order': {
+                    'prev': self.prev,
+                    'next': self.next
+                },
+        }
+
+    def get_fit_size(self, width=None, height=None):
+        """
+        Get the actual size of a photo that fits in the bounding box given.
+        """
+        orig_width = self.width
+        orig_height = self.height
+        if not width:
+            if height:
+                width = int((height * self.ratio) + 0.5)
+            else:
+                width = orig_width
+
+        if not height:
+            if width:
+                height = int((width / self.ratio) + 0.5)
+            else:
+                height = orig_height
+
+        return (width, height)
+
     def get_rel_uri(self, width=720, height=None, rotation=0.0, quality=60.0,
             img_format=None):
         """
