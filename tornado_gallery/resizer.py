@@ -155,18 +155,17 @@ class ResizerPool(object):
         orig_node = self._fs_node.join_node(gallery, photo)
 
         # Determine the name of the cache file.
-        cache_name = self._cache_node.join(
-                ('%(gallery)s-%(photo)s-'\
+        cache_name = ('%(gallery)s-%(photo)s-'\
                 '%(width)dx%(height)d-'\
                 '%(quality)d-%(rotation).6f.%(ext)s') % {
                     'gallery': gallery,
-                    'photo': photo,
+                    'photo': '.'.join(photo.split('.')[:-1]),
                     'width': width,
                     'height': height,
                     'quality': quality,
                     'rotation': rotation,
                     'ext': img_format.ext
-                })
+                }
         log.debug('Resized file: %s', cache_name)
 
         # Do we have this file?
