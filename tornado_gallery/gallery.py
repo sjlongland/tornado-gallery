@@ -41,11 +41,12 @@ class GalleryCollection(Cache):
         self._cache_subdir = cache_subdir
 
         self._content = None
-        self._content_mtime = 0
+        self._content_mtime = None
 
     def __iter__(self):
         content_mtime = self._root_node.stat.st_mtime
-        if content_mtime > self._content_mtime:
+        if (self._content_mtime is None) or \
+                (content_mtime > self._content_mtime):
             content = []
             for entry in self._root_node:
                 if entry == self._cache_subdir:
@@ -79,7 +80,7 @@ class Gallery(Mapping):
         self._collection = ref(collection)
         self._fs_node = gallery_node
 
-        self._content_mtime = 0
+        self._content_mtime = None
         self._content = None
         self._content_prev_order = None
         self._content_next_order = None
@@ -107,7 +108,8 @@ class Gallery(Mapping):
 
     def _get_content(self):
         content_mtime_now = self._fs_node.stat.st_mtime
-        if self._content_mtime < content_mtime_now:
+        if (self._content_mtime is None) or \
+                (self._content_mtime < content_mtime_now):
             content = {}
             for name in self._fs_node:
                 # Grab the file extension and analyse
