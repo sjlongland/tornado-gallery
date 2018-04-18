@@ -101,12 +101,12 @@ class PhotoHandler(RequestHandler):
         gallery = self.application._collection[gallery_name]
         photo = gallery[photo_name]
 
-        if (width is not None) or (width == '-'):
+        if (width is not None) and (width != '-'):
             width = int(width or 0)
         else:
             width = None
 
-        if (height is not None) or (height == '-'):
+        if (height is not None) and (height != '-'):
             height = int(height or 0)
         else:
             height = None
@@ -198,10 +198,11 @@ class PhotoPageHandler(RequestHandler):
                 width=width,
                 height=height,
                 settings={
-                    'width': self.get_query_argument('width', None),
+                    'width': self.get_query_argument('width', 720),
                     'height': self.get_query_argument('height', None),
-                    'quality': self.get_query_argument('quality', None),
+                    'quality': self.get_query_argument('quality', 60.0),
                     'rotation': self.get_query_argument('rotation', None),
+                    'img_format': self.get_query_argument('format', None),
                 }
         )
 
