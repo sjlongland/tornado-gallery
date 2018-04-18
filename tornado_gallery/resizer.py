@@ -103,6 +103,15 @@ class ResizerPool(object):
             self._log.debug('%s/%s target dimensions %d by %d',
                     gallery, photo, width, height)
 
+        # Determine where the file would be cached
+        (cache_dir, cache_name) = self._get_cache_name(gallery, photo,
+                width,height, quality, rotation, img_format)
+
+        # Do we have this file?
+        data = self._read_cache(orig_node, cache_dir, cache_name)
+        if data is not None:
+            raise Return((img_format, cache_name, data))
+
         # Locate the lock for this photo.
         mutex_key = (gallery, photo, width, height, quality, rotation,
                 img_format)
@@ -136,22 +145,11 @@ class ResizerPool(object):
         finally:
             mutex.release()
 
-    def _do_resize(self, gallery, photo, width, height, quality,
+    def _get_cache_name(self, gallery, photo, width, height, quality,
             rotation, img_format):
         """
-        Perform a resize of the image, and return the result.
+        Determine what the name of a cached resized image would be.
         """
-        img_format = ImageFormat(img_format)
-
-        log = self._log.getChild('%s/%s@%dx%d' \
-                % (gallery, photo, width, height))
-        log.debug('Resizing photo; quality %f, '\
-                'rotation %f, format %s',
-                quality, rotation, img_format.name)
-
-        # Determine the path to the original file.
-        orig_node = self._fs_node.join_node(gallery, photo)
-
         # Determine the name of the cache file.
         photo_noext = '.'.join(photo.split('.')[:-1])
         cache_name = ('%(gallery)s-%(photo)s-'\
@@ -166,12 +164,10 @@ class ResizerPool(object):
                     'ext': img_format.ext
                 }
         cache_dir = self._cache_node.join(gallery, photo_noext)
-        log.debug('Resized file: %s in %s', cache_name, cache_dir)
+        return (cache_dir, cache_name)
 
-        # Ensure the directory exists
-        makedirs(cache_dir, exist_ok=True)
-
-        # Do we have this file?
+    def _read_cache(self, orig_node, cache_dir, cache_name):
+        # Do we have this file now?
         cache_path = self._cache_node.join(cache_dir, cache_name)
         try:
             cache_node = self._cache_node[cache_path]
@@ -179,12 +175,36 @@ class ResizerPool(object):
             if (cache_node.stat.st_size > 0) and \
                     (cache_node.stat.st_mtime >= orig_node.stat.st_mtime):
                 # This will do.  Re-use the existing file.
-                log.info('Returning cached result')
-                return (img_format, cache_name,
-                        open(cache_node.abs_path, 'rb').read())
+                return open(cache_node.abs_path, 'rb').read()
         except KeyError:
             # We do not, press on!
             pass
+
+    def _do_resize(self, gallery, photo, width, height, quality,
+            rotation, img_format):
+        """
+        Perform a resize of the image, and return the result.
+        """
+        img_format = ImageFormat(img_format)
+        (cache_dir, cache_name) = self._get_cache_name(gallery, photo,
+                width,height, quality, rotation, img_format)
+
+        log = self._log.getChild('%s/%s@%dx%d' \
+                % (gallery, photo, width, height))
+        log.debug('Resizing photo; quality %f, '\
+                'rotation %f, format %s; save as %s in %s',
+                quality, rotation, img_format.name, cache_name, cache_dir)
+
+        # Determine the path to the original file.
+        orig_node = self._fs_node.join_node(gallery, photo)
+
+        # Ensure the directory exists
+        makedirs(cache_dir, exist_ok=True)
+
+        # Do we have this file now?
+        data = self._read_cache(orig_node, cache_dir, cache_name)
+        if data is not None:
+            return (img_format, cache_name, data)
 
         # Open the image
         img = Image.open(open(orig_node.abs_path,'rb'))
@@ -200,6 +220,7 @@ class ResizerPool(object):
         img = img.convert('RGB')
 
         # Write out the new file.
+        cache_path = self._cache_node.join(cache_dir, cache_name)
         img.save(open(cache_path,'wb'), img_format.pil_fmt)
 
         # Return to caller
