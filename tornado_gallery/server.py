@@ -229,7 +229,7 @@ class GalleryApp(Application):
                 PhotoHandler),
             (r"/([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+\.[a-zA-Z]+)/thumb.jpg",
                 ThumbnailHandler),
-            (r"/([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+\.[a-zA-Z]+)(?:\.html)?",
+            (r"/([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+\.[a-zA-Z]+)(?:/?[a-z]*\.html)?",
                 PhotoPageHandler),
             (r"/([a-zA-Z0-9_\-]+)/?", GalleryHandler),
             (r"/", RootHandler),
