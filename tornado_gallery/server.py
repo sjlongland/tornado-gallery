@@ -4,7 +4,6 @@ import argparse
 import logging
 import uuid
 import datetime
-import pytz
 import json
 import os.path
 
