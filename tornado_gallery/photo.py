@@ -107,6 +107,28 @@ class Photo(object):
         except KeyError:
             pass
 
+    def get_rel_uri(self, width=720, height=None, rotation=0.0, quality=60.0,
+            img_format=None):
+        """
+        Return the URI of the given photo relative to the site URI
+        """
+        # Base gallery and image name
+        uri = '%s/%s' % (self._gallery().name, self.name)
+
+        # Dimensions and orientation
+        uri += '/%sx%s' % (width or '-', height or '-')
+        if rotation:
+            dims += '@%f' % rotation
+
+        # Quality
+        uri += '/%f' % quality
+
+        # Format; if given
+        if img_format is not None:
+            uri += '/%s' % (img_format.rsplit('/',1).lower())
+
+        return uri
+
     @property
     def _meta_node(self):
         # Return the metadata node for this photo.
