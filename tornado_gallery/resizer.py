@@ -1,4 +1,4 @@
-from tornado.gen import coroutine, Future, Return
+from tornado.gen import coroutine, Return
 from tornado.ioloop import IOLoop
 from PIL import Image
 from sys import exc_info
@@ -11,7 +11,7 @@ import logging
 from os import makedirs
 
 import multiprocessing
-import multiprocessing.pool
+from .pool import WorkerPool
 from weakref import WeakValueDictionary
 
 # Filename extension mappings
@@ -51,7 +51,7 @@ class ResizerPool(object):
             num_proc = multiprocessing.cpu_count()
 
         self._log = log
-        self._pool = multiprocessing.pool.ThreadPool(num_proc)
+        self._pool = WorkerPool(num_proc)
         self._fs_node = root_dir_node
         self._cache_node = self._fs_node[cache_subdir]
         self._mutexes = WeakValueDictionary()
@@ -120,15 +120,11 @@ class ResizerPool(object):
             yield mutex.acquire()
 
             # We have the semaphore, call our resize routine.
-            future = Future()
             self._log.debug('%s/%s retrieving resized image (args=%s)',
                     gallery, photo, resize_args)
-            self._pool.apply_async(
+            (img_format, file_name, file_data) = yield self._pool.apply(
                 func=self._do_resize,
-                args=resize_args,
-                callback=future.set_result,
-                error_callback=future.set_exception)
-            (img_format, file_name, file_data) = yield future
+                args=resize_args)
             raise Return((img_format, file_name, file_data))
         except Return:
             raise
