@@ -1,66 +1,38 @@
-function getXHR() {
-	var httpRequest;
-	if (window.XMLHttpRequest) { // Mozilla, Safari, ...
-		httpRequest = new XMLHttpRequest();
-	} else if (window.ActiveXObject) { // IE
-		httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
-	}
-	return httpRequest;
-}
-
 function fetchImage( width, height, rotation ) {
-	data = getData();
-	xhr = getXHR();
-	photo_obj = document.getElementById( 'photoimg' );
+	var data = getData();
+	var photo_obj = document.getElementById( 'photoimg' );
 
-	xhr.onreadystatechange = function() {
-		if ( xhr.readyState == 4) {
-			document.scroll_en = true;
-			if ( xhr.status == 200 ) {
-				eval( 'data=' + xhr.responseText );
-				photo_obj.src = 
-					data.uri + '/' + data.photo.resized;
-				document.data = data;
-			}
-		}
+	/* Retrieve the image off-page for now */
+	var img = new Image();
+	img.onload = function() {
+		photo_obj.src = img.src;
 		showPopupFor(3000, '<p class="popuptitle">Image Loaded</h4>'
 			+'<p class="popupbody">'
 			+'The image has been successfully retrieved.</p>');
 		document.scroll_en = true;
 	};
+	img.src = document.location.origin
+			+ '/' + data.gallery.name
+			+ '/' + data.photo.name
+			+ '/' + (width || '-')
+			+ 'x' + (height || '-')
+			+ '@' + (rotation || '0')
+			+ '/' + data.settings.quality;
 
 	/* Cancel any existing timers */
 	if ( document.zoom_timer )
 		window.clearTimeout( document.zoom_timer );
-	
-	/* Set a timer to fetch this data after a 3 second delay */
-	url = document.location.protocol + "//" 
-			+ document.location.hostname
-			+ document.location.pathname
-			+ '?width=' + width
-			+ '&height=' + height
-			+ '&quality=' + data.settings.quality
-			+ '&rotation=' + rotation
-			+ '&json=1';
 
-	document.zoom_timer = window.setTimeout( function() {
-		document.scroll_en = false;
-		document.zoom_timer = false;
-		document.scroll_en = false;
-		showPopup('<p class="popuptitle">Loading Image</h4>'
+	showPopupFor(3000, '<p class="popuptitle">Loading image</h4>'
 			+'<p class="popupbody">'
-			+'The requested image is being generated...'
-			+'Please Wait.</p>');
-		xhr.open('GET', url );
-		xhr.send(null);
-	}, 3000 );
+			+'Loading new image.</p>');
 }
 
 function setZoom( zoom ) {
-	data = getData();
+	var data = getData();
 
 	/* Round zoom to 1% */
-	zoom = Math.round( zoom*100 )/100;
+	var zoom = Math.round( zoom*100 )/100;
 
 	document.zoom = zoom;
 	width = Math.round(data.photo.origwidth*zoom);
@@ -69,7 +41,7 @@ function setZoom( zoom ) {
 	document.getElementById( 'width' ).value = width;
 	document.getElementById( 'height' ).value = height;
 
-	photo_obj = document.getElementById( 'photoimg' );
+	var photo_obj = document.getElementById( 'photoimg' );
 	if ( photo_obj ) {
 		photo_obj.width = width;
 		photo_obj.height = height;
@@ -95,7 +67,7 @@ function resetZoom() {
 }
 
 function adjustZoom( amount ) {
-	data = getData();
+	var data = getData();
 	if ( document.zoom == null )
 		document.zoom = data.photo.zoom;
 	if ( document.scroll_en )
@@ -103,6 +75,8 @@ function adjustZoom( amount ) {
 }
 
 function showPopup(body) {
+	var div;
+
 	if ( document.popupDiv )
 		div	= document.popupDiv;
 	else {
@@ -141,16 +115,14 @@ function hidePopup() {
 }
 
 function setRotation( angle ) {
-	data = getData();
+	var data = getData();
 
 	/* Display a preview */
-	preview = document.location.protocol + "//" 
-			+ document.location.hostname
-			+ data.CGI.ScriptName
-			+ '/.rotate_preview'
-			+ '?gallery=' + data.gallery.name
-			+ '&photo=' + data.photo.name
-			+ '&rotation=' + angle;
+	var preview = document.location.origin
+			+ data.gallery.name
+			+ data.photo.name
+			+ '/100x100@' + angle
+			+ '/25/jpeg';
 
 	if ( preview == document.rotationPreview )
 		return;
