@@ -190,12 +190,18 @@ class ResizerPool(object):
             # We do not, press on!
             pass
 
+        # Open the image
+        img = Image.open(open(orig_node.abs_path,'rb'))
+
+        # Rotate if asked:
+        if rotation != 0:
+            img = img.rotate(rotation, expand=1)
+
         # Resize!
-        orig = Image.open(open(orig_node.abs_path,'rb'))
-        resized = orig.resize((width, height), Image.LANCZOS)
+        img = img.resize((width, height), Image.LANCZOS)
 
         # Write out the new file.
-        resized.save(open(cache_path,'wb'), img_format.pil_fmt)
+        img.save(open(cache_path,'wb'), img_format.pil_fmt)
 
         # Return to caller
         log.info('Returning resized result')
