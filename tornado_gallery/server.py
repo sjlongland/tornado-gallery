@@ -77,6 +77,16 @@ class GalleryHandler(RequestHandler):
         )
 
 
+class GalleryMetaHandler(RequestHandler):
+    @coroutine
+    def get(self, gallery_name):
+        gallery = self.application._collection[gallery_name]
+
+        self.set_status(200)
+        self.set_header('Content-Type', 'application/json')
+        self.write(json.dumps(gallery.meta))
+
+
 class ThumbnailHandler(RequestHandler):
     def get(self, gallery_name, photo_name):
         gallery = self.application._collection[gallery_name]
@@ -97,7 +107,7 @@ class ThumbnailHandler(RequestHandler):
 
 class PhotoHandler(RequestHandler):
     @coroutine
-    def get(self, gallery_name, photo_name, width=720, height=None, rotation=None,
+    def get(self, gallery_name, photo_name, width=None, height=None, rotation=None,
             quality=None, img_format=None):
         gallery = self.application._collection[gallery_name]
         photo = gallery[photo_name]
@@ -112,19 +122,7 @@ class PhotoHandler(RequestHandler):
         else:
             height = None
 
-        orig_width = photo.width
-        orig_height = photo.height
-        if not width:
-            if height:
-                width = int((height * photo.ratio) + 0.5)
-            else:
-                width = orig_width
-
-        if not height:
-            if width:
-                height = int((width / photo.ratio) + 0.5)
-            else:
-                height = orig_height
+        (width, height) = photo.get_fit_size(width, height)
 
         if img_format is not None:
             img_format = 'image/%s' % img_format
@@ -141,14 +139,14 @@ class PhotoHandler(RequestHandler):
         self.write(img_data)
 
 
-class PhotoPageHandler(RequestHandler):
+class PhotoMetaHandler(RequestHandler):
     @coroutine
     def get(self, gallery_name, photo_name):
         gallery = self.application._collection[gallery_name]
         photo = gallery[photo_name]
 
         # Figure out view width/height
-        width=self.get_query_argument('width', 720)
+        width=self.get_query_argument('width', min(photo.width, 720))
         height=self.get_query_argument('height', None)
 
         if width is not None:
@@ -156,19 +154,40 @@ class PhotoPageHandler(RequestHandler):
         if height is not None:
             height = int(height or 0)
 
-        orig_width = photo.width
-        orig_height = photo.height
-        if not width:
-            if height:
-                width = int((height * photo.ratio) + 0.5)
-            else:
-                width = orig_width
+        (img_width, img_height) = photo.get_fit_size(width, height)
 
-        if not height:
-            if width:
-                height = int((width / photo.ratio) + 0.5)
-            else:
-                height = orig_height
+        self.set_status(200)
+        self.set_header('Content-Type', 'application/json')
+        self.write(json.dumps({
+            'gallery': gallery.name,
+            'photo': photo.meta,
+            'user_size': {
+                'width': width,
+                'height': height,
+            },
+            'view_size': {
+                'width': img_width,
+                'height': img_height
+            }
+        }))
+
+
+class PhotoPageHandler(RequestHandler):
+    @coroutine
+    def get(self, gallery_name, photo_name):
+        gallery = self.application._collection[gallery_name]
+        photo = gallery[photo_name]
+
+        # Figure out view width/height
+        width=self.get_query_argument('width', min(photo.width, 720))
+        height=self.get_query_argument('height', None)
+
+        if width is not None:
+            width = int(width or 0)
+        if height is not None:
+            height = int(height or 0)
+
+        (img_width, img_height) = photo.get_fit_size(width, height)
 
         show_photo = self.get_query_argument('show', False) == 'on'
         if show_photo:
@@ -176,7 +195,7 @@ class PhotoPageHandler(RequestHandler):
                     ('%s/%s') % (
                          self.application._site_uri,
                          photo.get_rel_uri(
-                             width, height,
+                             img_width, img_height,
                              float(self.get_query_argument(
                                 'rotation', 0.0)),
                              float(self.get_query_argument(
@@ -196,11 +215,11 @@ class PhotoPageHandler(RequestHandler):
                 page_query=self.request.query,
                 gallery=gallery,
                 photo=photo,
-                width=width,
-                height=height,
+                width=img_width,
+                height=img_height,
                 settings={
-                    'width': self.get_query_argument('width', 720),
-                    'height': self.get_query_argument('height', None),
+                    'width': width,
+                    'height': height,
                     'quality': self.get_query_argument('quality', 60.0),
                     'rotation': self.get_query_argument('rotation', None),
                     'img_format': self.get_query_argument('format', None),
@@ -231,7 +250,11 @@ class GalleryApp(Application):
                 ThumbnailHandler),
             (r"/([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+\.[a-zA-Z]+)(?:/?[a-z]*\.html)?",
                 PhotoPageHandler),
+            (r"/meta/([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+\.[a-zA-Z]+)",
+                PhotoMetaHandler),
             (r"/([a-zA-Z0-9_\-]+)/?", GalleryHandler),
+            (r"/meta/([a-zA-Z0-9_\-]+)",
+                GalleryMetaHandler),
             (r"/raw/([a-zA-Z0-9_\-]+/[a-zA-Z0-9_\-]+\.[a-zA-Z]+)",
                 StaticFileHandler, {"path": root_dir}),
             (r"/", RootHandler),
