@@ -33,7 +33,7 @@ body {
 			{% set hh = p.thumbheight / 2 %}
 			{% set xpad = 60 - hw %}
 			{% set ypad = 60 - hh %}
-			<a href="{{site_uri}}/{{gallery.name}}/{{p.name}}?{{page_query}}"><img src="{{site_uri}}/{{gallery.name}}/{{p.name}}/thumb.jpg"
+			<a href="{{site_uri}}/{{gallery.name}}/{{p.name}}/photo.html?{{page_query}}"><img src="{{site_uri}}/{{gallery.name}}/{{p.name}}/thumb.jpg"
 					align="absmiddle"
 					width="{{p.thumbwidth}}"
 					height="{{p.thumbheight}}"
