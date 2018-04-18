@@ -1,3 +1,49 @@
+/**
+ * Fetch a URI via XMLHttpRequest and return via a promise.
+ *
+ * @param url		URL to retrieve
+ * @param options	An object which describes request options:
+ * 	method:		Request method to use, default is 'GET'
+ * 	body:		Body to send in HTTP request, default is null.
+ * 	beforeOpen:	Function to run before calling xhr.open(),
+ * 			this will be given the XHR object for setting
+ * 			headers, etc.
+ * 	expect:		An object with expected status codes.  e.g.
+ * 			{200: true} will expect code 200, and anything
+ * 			else is an error.  Otherwise, only failed XHRs
+ * 			(status 0) is considered an error.
+ *
+ * @returns		The XMLHttpRequest object, hopefully with data.
+ *
+ * The exception returns the XMLHttpRequest as its xhr property.
+ */
+var fetch = function (url, options) {
+	options = options || {};
+
+	return new Promise(function (resolve, reject) {
+		var xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = function () {
+			if (xhr.readyState !== XMLHttpRequest.DONE) {
+				return;
+			}
+
+			if ((xhr.status === 0) || (options.expect
+					&& (!options.expect[xhr.status]))) {
+				var err = new Error('XMLHTTPRequest failed');
+				err.xhr = xhr;
+				reject(err);
+			} else {
+				resolve(xhr);
+			}
+		};
+		if (options.beforeOpen) {
+			options.beforeOpen(xhr);
+		}
+		xhr.open(options.method || 'GET', url);
+		xhr.send(options.body || null);
+	});
+};
+
 function fetchImage( width, height, rotation ) {
 	var data = getData();
 	var photo_obj = document.getElementById( 'photoimg' );
@@ -48,7 +94,7 @@ function setZoom( zoom ) {
 
 		/* If the size is bigger than our present image, request a
 		 * bigger one from the server. */
-		if ( 		( width > data.photo.width ) || 
+		if ( 		( width > data.photo.width ) ||
 				( height > data.photo.height ) ) {
 			fetchImage( width, height, data.settings.rotation );
 		}
