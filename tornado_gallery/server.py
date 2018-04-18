@@ -66,6 +66,15 @@ class GalleryHandler(RequestHandler):
         gallery = self.application._collection[gallery_name]
 
         self.set_status(200)
+        if bool(self.get_query_argument('generate', False)):
+            self.render('generator.thtml',
+                    static_uri=self.application._static_uri,
+                    site_uri=self.application._site_uri,
+                    page_query=self.request.query,
+                    gallery=gallery
+            )
+            return
+
         self.render('gallery.thtml',
                 site_name=self.application._site_name or \
                         '%s Galleries' % (self.request.host),
@@ -161,6 +170,13 @@ class PhotoMetaHandler(RequestHandler):
         self.write(json.dumps({
             'gallery': gallery.name,
             'photo': photo.meta,
+            'src': photo.get_rel_uri(
+                img_width, img_height,
+                             float(self.get_query_argument(
+                                'rotation', 0.0)),
+                             float(self.get_query_argument(
+                                'quality', 60.0)),
+                             self.get_query_argument('format', None)),
             'user_size': {
                 'width': width,
                 'height': height,
