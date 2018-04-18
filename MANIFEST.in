@@ -1,0 +1,1 @@
+recursive-include tornado_gallery/static *.thtml *.css *.js *.png
