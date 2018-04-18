@@ -11,13 +11,13 @@ class MetadataFile(object):
     """
     def __init__(self, fs_node):
         self._fs_node = fs_node
-        self._last_mtime = 0
+        self._last_mtime = None
         self._root_data = None
         self._children_data = None
 
     def _refresh(self):
         meta_mtime = self._fs_node.stat.st_mtime
-        if meta_mtime > self._last_mtime:
+        if (self._last_mtime is None) or (meta_mtime > self._last_mtime):
             child = None
             root_data = {}
             children_data = {}
