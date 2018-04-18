@@ -118,7 +118,7 @@ class Photo(object):
         # Dimensions and orientation
         uri += '/%sx%s' % (width or '-', height or '-')
         if rotation:
-            dims += '@%f' % rotation
+            uri += '@%f' % rotation
 
         # Quality
         uri += '/%f' % quality
