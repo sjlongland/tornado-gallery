@@ -200,6 +200,9 @@ class ResizerPool(object):
         # Resize!
         img = img.resize((width, height), Image.LANCZOS)
 
+        # Convert to RGB colourspace
+        img = img.convert('RGB')
+
         # Write out the new file.
         img.save(open(cache_path,'wb'), img_format.pil_fmt)
 
