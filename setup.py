@@ -18,4 +18,5 @@ setup (name='tornado_gallery',
             'tornado_gallery',
             'tornado_gallery.static',
         ],
+        include_package_data=True
 )
