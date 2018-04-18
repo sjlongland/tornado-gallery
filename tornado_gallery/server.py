@@ -9,7 +9,7 @@ import os.path
 
 
 from tornado.web import Application, RequestHandler, \
-        RedirectHandler, MissingArgumentError
+        RedirectHandler, MissingArgumentError, StaticFileHandler
 from tornado.httpclient import AsyncHTTPClient, HTTPError
 from tornado.httpserver import HTTPServer
 from tornado.locks import Semaphore
@@ -232,6 +232,8 @@ class GalleryApp(Application):
             (r"/([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+\.[a-zA-Z]+)(?:/?[a-z]*\.html)?",
                 PhotoPageHandler),
             (r"/([a-zA-Z0-9_\-]+)/?", GalleryHandler),
+            (r"/raw/([a-zA-Z0-9_\-]+/[a-zA-Z0-9_\-]+\.[a-zA-Z]+)",
+                StaticFileHandler, {"path": root_dir}),
             (r"/", RootHandler),
         ],
         static_url_prefix=static_uri,
