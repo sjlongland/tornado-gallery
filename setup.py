@@ -8,6 +8,7 @@ setup (name='tornado_gallery',
             'tornado',
             'pillow',
             'filemagic',
+            'cachefs',
         ],
         entry_points = {
             'console_scripts': [
