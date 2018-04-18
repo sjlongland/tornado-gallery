@@ -95,9 +95,9 @@ body {
 						value="{{height}}" size="3" />
 		Rotation:
 			<input type="text" 	name="rotation" id="rotate"
-						value="0.000" size="5" />
+						value="{{settings['rotation'] or 0.0}}" size="5" />
 		Quality: <input type="text"	name="quality"
-						value="60" size="3" />
+						value="{{settings['quality'] or 60}}" size="3" />
 						(100% = PNG)
 		<input type="submit" value="Go" />
 		<br />
