@@ -216,8 +216,9 @@ class ResizerPool(object):
         # Resize!
         img = img.resize((width, height), Image.LANCZOS)
 
-        # Convert to RGB colourspace
-        img = img.convert('RGB')
+        # Convert to RGB colourspace if not GIF
+        if img_format != ImageFormat.GIF:
+            img = img.convert('RGB')
 
         # Write out the new file.
         cache_path = self._cache_node.join(cache_dir, cache_name)
