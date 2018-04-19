@@ -56,7 +56,7 @@ body {
 				alt="|&lt;- First" src="{{static_uri}}/images/start.png"
 				border="0" align="absmiddle" /></a></td>
 		<td class="prevlink"><a class="button" accesskey=","
-			href="{{site_uri}}/{{gallery.name}}/{{photo.prev}}/photo.html?{{page_query}}"><img
+			href="{{site_uri}}/{{gallery.name}}/{{photo.prev or gallery.first}}/photo.html?{{page_query}}"><img
 				alt="&lt;- Prev" src="{{static_uri}}/images/back.png"
 				border="0" align="absmiddle" /></a></td>
 		<td class="status"><a class="button" accesskey="l"
@@ -73,7 +73,7 @@ body {
 				src="{{static_uri}}/images/top.png"
 				border="0" align="absmiddle" /></a></td>
 		<td class="nextlink"><a class="button" accesskey="."
-			href="{{site_uri}}/{{gallery.name}}/{{photo.next}}/photo.html?{{page_query}}"><img alt="-&gt; Next" src="{{static_uri}}/images/forward.png" border="0"
+			href="{{site_uri}}/{{gallery.name}}/{{photo.next or gallery.last}}/photo.html?{{page_query}}"><img alt="-&gt; Next" src="{{static_uri}}/images/forward.png" border="0"
 				align="absmiddle" /></a></td>
 		<td class="lastlink"><a class="button" accesskey="]"
 			href="{{site_uri}}/{{gallery.name}}/{{gallery.last}}/photo.html?{{page_query}}"><img
