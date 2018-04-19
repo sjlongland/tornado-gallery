@@ -8,6 +8,11 @@ from tornado.locks import Semaphore
 import magic
 import logging
 
+try:
+    import piexif
+except ImportError:
+    pass
+
 from os import makedirs
 
 import multiprocessing
@@ -192,8 +197,9 @@ class ResizerPool(object):
         log = self._log.getChild('%s/%s@%dx%d' \
                 % (gallery, photo, width, height))
         log.debug('Resizing photo; quality %f, '\
-                'rotation %f, format %s; save as %s in %s',
-                quality, rotation, img_format.name, cache_name, cache_dir)
+                'rotation %f, format %s, orientation %s; save as %s in %s',
+                quality, rotation, img_format.name, orientation,
+                cache_name, cache_dir)
 
         # Determine the path to the original file.
         orig_node = self._fs_node.join_node(gallery, photo)
@@ -213,17 +219,17 @@ class ResizerPool(object):
         if orientation == 2:
             img = img.transpose(Image.FLIP_LEFT_RIGHT)
         elif orientation == 3:
-            img = img.rotate(180)
+            img = img.transpose(Image.ROTATE_180)
         elif orientation == 4:
-            img = img.rotate(180).transpose(Image.FLIP_LEFT_RIGHT)
+            img = img.transpose(Image.ROTATE_180).transpose(Image.FLIP_LEFT_RIGHT)
         elif orientation == 5:
-            img = img.rotate(-90).transpose(Image.FLIP_LEFT_RIGHT)
+            img = img.transpose(Image.ROTATE_270).transpose(Image.FLIP_LEFT_RIGHT)
         elif orientation == 6:
-            img = img.rotate(-90)
+            img = img.transpose(Image.ROTATE_270)
         elif orientation == 7:
-            img = img.rotate(90).transpose(Image.FLIP_LEFT_RIGHT)
+            img = img.transpose(Image.ROTATE_90).transpose(Image.FLIP_LEFT_RIGHT)
         elif orientation == 8:
-            img = img.rotate(90)
+            img = img.transpose(Image.ROTATE_90)
 
         # Rotate if asked:
         if rotation != 0:
@@ -249,8 +255,55 @@ class ResizerPool(object):
         """
         Return the raw properties of the photo.
         """
-
+        log = self._log.getChild('%s/%s' % (gallery, photo))
         img_node = self._fs_node.join_node(gallery, photo)
         img = Image.open(open(img_node.abs_path,'rb'))
         (width, height) = img.size
-        return dict(width=width, height=height)
+        meta = dict(width=width, height=height)
+
+        log.debug('Raw dimensions %dx%d', width, height)
+
+        try:
+            exif = piexif.load(img_node.abs_path,
+                    key_is_name=True)
+            log.debug('Loaded EXIF data')
+        except:
+            # Maybe EXIF is not supported?  Or maybe piexif isn't loaded.
+            exif = None
+            log.debug('No EXIF data available', exc_info=1)
+
+        if exif is not None:
+            # Decode the EXIF data¸ stripping the blobs
+            # This is an ugly workaround to
+            # https://github.com/hMatoba/Piexif/issues/58
+            def _strip_blobs(obj):
+                if isinstance(obj, bytes):
+                    return obj.decode('UTF-8')
+                if isinstance(obj, dict):
+                    out = {}
+                    for key, value in obj.items():
+                        try:
+                            out[key] = _strip_blobs(value)
+                        except:
+                            pass
+                    return out
+                if isinstance(obj, list) or isinstance(obj, tuple):
+                    out = []
+                    for value in obj:
+                        try:
+                            out.append(_strip_blobs(value))
+                        except:
+                            pass
+                    return out
+                return obj
+            meta['exif'] = _strip_blobs(exif)
+
+            try:
+                if meta['exif']['0th']['Orientation'] in (5, 6, 7, 8):
+                    log.debug('Swapping width/height due to orientation')
+                    meta['height'] = width
+                    meta['width'] = height
+            except KeyError:
+                pass
+
+        return meta

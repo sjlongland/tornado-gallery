@@ -30,40 +30,6 @@ class Photo(object):
             self._properties = self._resizer_pool.get_properties(
                     self._gallery().name,
                     self.name)
-
-            try:
-                exif = piexif.load(self._fs_node.abs_path,
-                        key_is_name=True)
-            except:
-                # Maybe EXIF is not supported?  Or maybe piexif isn't loaded.
-                exif = None
-
-            if exif is not None:
-                # Decode the EXIF data¸ stripping the blobs
-                # This is an ugly workaround to
-                # https://github.com/hMatoba/Piexif/issues/58
-                def _strip_blobs(obj):
-                    if isinstance(obj, bytes):
-                        return obj.decode('UTF-8')
-                    if isinstance(obj, dict):
-                        out = {}
-                        for key, value in obj.items():
-                            try:
-                                out[key] = _strip_blobs(value)
-                            except:
-                                pass
-                        return out
-                    if isinstance(obj, list) or isinstance(obj, tuple):
-                        out = []
-                        for value in obj:
-                            try:
-                                out.append(_strip_blobs(value))
-                            except:
-                                pass
-                        return out
-                    return obj
-                self._properties['exif'] = _strip_blobs(exif)
-
             self._properties_mtime = file_mtime
 
         value = self._properties
@@ -77,14 +43,10 @@ class Photo(object):
 
     @property
     def width(self):
-        if self.orientation in (5, 6, 7, 8):
-            return self._get_property('height')
         return self._get_property('width')
 
     @property
     def height(self):
-        if self.orientation in (5, 6, 7, 8):
-            return self._get_property('width')
         return self._get_property('height')
 
     @property
