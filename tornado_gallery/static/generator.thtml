@@ -88,7 +88,7 @@ body {
 					src: curr_img.src,
 					width: curr_img.width,
 					height: curr_img.height,
-					href: '{{site_uri}}'
+					href: '{{site_uri}}/'
 						+ gallery.name
 						+ '/' + photo
 						+ '/photo.html?{{page_query}}'
