@@ -23,7 +23,7 @@ class Photo(object):
         self._properties = None
         self._properties_mtime = None
 
-    def _get_property(self, key=None):
+    def _get_property(self, *args):
         file_mtime = self._fs_node.stat.st_mtime
         if (self._properties_mtime is None) or \
                 (file_mtime > self._properties_mtime):
@@ -65,9 +65,11 @@ class Photo(object):
                 self._properties['exif'] = _strip_blobs(exif)
 
             self._properties_mtime = file_mtime
-        if key is not None:
-            return self._properties[key]
-        return self._properties
+
+        value = self._properties
+        for key in args:
+            value = value[key]
+        return value
 
     @property
     def name(self):
@@ -80,6 +82,13 @@ class Photo(object):
     @property
     def height(self):
         return self._get_property('height')
+
+    @property
+    def orientation(self):
+        try:
+            return self._get_property('exif', '0th', 'Orientation')
+        except KeyError:
+            return 0
 
     @property
     def ratio(self):
@@ -245,7 +254,9 @@ class Photo(object):
             rotation=0.0, img_format=None):
         result = yield self._gallery().get_resized(
                 photo=self.name, width=width, height=height,
-                quality=quality, rotation=rotation, img_format=img_format)
+                quality=quality, rotation=rotation,
+                img_format=img_format,
+                orientation=self.orientation)
         raise Return(result)
 
     @property
