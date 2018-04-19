@@ -59,7 +59,7 @@ class ResizerPool(object):
     @coroutine
     def get_resized(self, gallery, photo,
             width=None, height=None, quality=60,
-            rotation=0.0, img_format=None):
+            rotation=0.0, img_format=None, orientation=0):
         """
         Retrieve the given photo in a resized format.
         """
@@ -122,7 +122,7 @@ class ResizerPool(object):
             self._mutexes[mutex_key] = mutex
 
         resize_args = (gallery, photo, width, height, quality,
-                    rotation, img_format.value)
+                    rotation, img_format.value, orientation)
         try:
             self._log.debug('%s/%s waiting for mutex',
                     gallery, photo)
@@ -181,7 +181,7 @@ class ResizerPool(object):
             pass
 
     def _do_resize(self, gallery, photo, width, height, quality,
-            rotation, img_format):
+            rotation, img_format, orientation):
         """
         Perform a resize of the image, and return the result.
         """
@@ -208,6 +208,22 @@ class ResizerPool(object):
 
         # Open the image
         img = Image.open(open(orig_node.abs_path,'rb'))
+
+        # Credit: http://piexif.readthedocs.io/en/stable/sample.html
+        if orientation == 2:
+            img = img.transpose(Image.FLIP_LEFT_RIGHT)
+        elif orientation == 3:
+            img = img.rotate(180)
+        elif orientation == 4:
+            img = img.rotate(180).transpose(Image.FLIP_LEFT_RIGHT)
+        elif orientation == 5:
+            img = img.rotate(-90).transpose(Image.FLIP_LEFT_RIGHT)
+        elif orientation == 6:
+            img = img.rotate(-90)
+        elif orientation == 7:
+            img = img.rotate(90).transpose(Image.FLIP_LEFT_RIGHT)
+        elif orientation == 8:
+            img = img.rotate(90)
 
         # Rotate if asked:
         if rotation != 0:
