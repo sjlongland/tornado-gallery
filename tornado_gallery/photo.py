@@ -77,10 +77,14 @@ class Photo(object):
 
     @property
     def width(self):
+        if self.orientation in (5, 6, 7, 8):
+            return self._get_property('height')
         return self._get_property('width')
 
     @property
     def height(self):
+        if self.orientation in (5, 6, 7, 8):
+            return self._get_property('width')
         return self._get_property('height')
 
     @property
