@@ -188,13 +188,15 @@ class Gallery(Mapping):
 
     @coroutine
     def get_resized(self, photo, width=None, height=None, quality=60,
-            rotation=0.0, img_format=None):
+            rotation=0.0, img_format=None, orientation=0):
         if isinstance(photo, Photo):
+            orientation = photo.orientation
             photo = photo.name
 
         result = yield self._resizer_pool.get_resized(
                 gallery=self.name, photo=photo, width=width, height=height,
-                quality=quality, rotation=rotation, img_format=img_format)
+                quality=quality, rotation=rotation, img_format=img_format,
+                orientation=orientation)
         raise Return(result)
 
     @property
