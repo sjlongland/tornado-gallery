@@ -10,6 +10,10 @@ except ImportError:
     pass
 
 
+DEFAULT_WIDTH = 720
+DEFAULT_HEIGHT = 540
+DEFAULT_QUALITY = 60
+DEFAULT_ROTATION = 0.0
 THUMB_SIZE = 100
 
 
@@ -162,7 +166,8 @@ class Photo(object):
         """
         return calc_dimensions(self.width, self.height, width, height)
 
-    def get_rel_uri(self, width=720, height=None, rotation=0.0, quality=60.0,
+    def get_rel_uri(self, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT,
+            rotation=DEFAULT_ROTATION, quality=DEFAULT_QUALITY,
             img_format=None):
         """
         Return the URI of the given photo relative to the site URI
