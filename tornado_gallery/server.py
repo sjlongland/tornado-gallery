@@ -18,6 +18,8 @@ from tornado.ioloop import IOLoop
 
 
 from .gallery import GalleryCollection, CACHE_DIR_NAME
+from .photo import DEFAULT_WIDTH, DEFAULT_HEIGHT, \
+        DEFAULT_QUALITY, DEFAULT_ROTATION
 
 
 class DebugHandler(RequestHandler):
@@ -155,13 +157,20 @@ class PhotoMetaHandler(RequestHandler):
         photo = gallery[photo_name]
 
         # Figure out view width/height
-        width=self.get_query_argument('width', min(photo.width, 720))
-        height=self.get_query_argument('height', None)
+        width=self.get_query_argument('width',
+                min(photo.width, DEFAULT_WIDTH))
+        height=self.get_query_argument('height',
+                min(photo.height, DEFAULT_HEIGHT))
 
-        if width is not None:
-            width = int(width or 0)
-        if height is not None:
-            height = int(height or 0)
+        if width:
+            width = int(width)
+        else:
+            width = None
+
+        if height:
+            height = int(height)
+        else:
+            height = None
 
         (img_width, img_height) = photo.get_fit_size(width, height)
 
@@ -173,9 +182,9 @@ class PhotoMetaHandler(RequestHandler):
             'src': self.application._site_uri + '/' + photo.get_rel_uri(
                 img_width, img_height,
                              float(self.get_query_argument(
-                                'rotation', 0.0)),
+                                'rotation', DEFAULT_ROTATION)),
                              float(self.get_query_argument(
-                                'quality', 60.0)),
+                                'quality', DEFAULT_QUALITY)),
                              self.get_query_argument('format', None)),
             'user_size': {
                 'width': width,
@@ -195,13 +204,20 @@ class PhotoPageHandler(RequestHandler):
         photo = gallery[photo_name]
 
         # Figure out view width/height
-        width=self.get_query_argument('width', min(photo.width, 720))
-        height=self.get_query_argument('height', None)
+        width=self.get_query_argument('width',
+                min(photo.width, DEFAULT_WIDTH))
+        height=self.get_query_argument('height',
+                min(photo.height, DEFAULT_HEIGHT))
 
-        if width is not None:
-            width = int(width or 0)
-        if height is not None:
-            height = int(height or 0)
+        if width:
+            width = int(width)
+        else:
+            width = None
+
+        if height:
+            height = int(height)
+        else:
+            height = None
 
         (img_width, img_height) = photo.get_fit_size(width, height)
 
@@ -213,9 +229,9 @@ class PhotoPageHandler(RequestHandler):
                          photo.get_rel_uri(
                              img_width, img_height,
                              float(self.get_query_argument(
-                                'rotation', 0.0)),
+                                'rotation', DEFAULT_ROTATION)),
                              float(self.get_query_argument(
-                                'quality', 60.0)),
+                                'quality', DEFAULT_QUALITY)),
                              self.get_query_argument('format', None)
                          )
                      )
@@ -236,8 +252,10 @@ class PhotoPageHandler(RequestHandler):
                 settings={
                     'width': width,
                     'height': height,
-                    'quality': self.get_query_argument('quality', 60.0),
-                    'rotation': self.get_query_argument('rotation', None),
+                    'quality': self.get_query_argument(
+                        'quality', DEFAULT_QUALITY),
+                    'rotation': self.get_query_argument(
+                        'rotation', DEFAULT_ROTATION),
                     'img_format': self.get_query_argument('format', None),
                 }
         )
