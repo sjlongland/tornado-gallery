@@ -47,6 +47,39 @@ class ImageFormat(Enum):
         return _FORMAT_PIL[self.value]
 
 
+def calc_dimensions(raw_width, raw_height, width=None, height=None):
+    """
+    Given the raw dimensions of a photo, and optional target dimensions,
+    return the dimensions of a photo that will fit in the target dimensions
+    whilst respecting the aspect ratio of the photo.
+    """
+    # Simple case, neither given, do not scale.
+    if (width is None) and (height is None):
+        return (raw_width, raw_height)
+
+    # Compute aspect ratio
+    ratio = float(raw_width) / float(raw_height)
+
+    # Simple case: one dimension only given
+    if width is None:
+        # Scale by height only.
+        return (int(height * ratio), height)
+    elif height is None:
+        # Scale by width only.
+        return (width, int(width / ratio))
+    else:
+        # Both dimensions, pick the one that fits!
+        scaled_height = int(width / ratio)
+        scaled_width = int(height * ratio)
+
+        if scaled_width > width:
+            # Scale-by-height is too wide, scale-by-width.
+            return (width, scaled_height)
+        else:
+            # Scale-by-width is too tall, scale-by-height.
+            return (scaled_width, height)
+
+
 class ResizerPool(object):
     def __init__(self, root_dir_node, cache_subdir, num_proc=None, log=None):
         if log is None:
@@ -93,20 +126,10 @@ class ResizerPool(object):
         self._log.debug('%s/%s using %s format',
                 gallery, photo, img_format.name)
 
-        # Do we need to compute full dimensions?
-        if (width is None) or (height is None):
-            raw_width, raw_height = yield self.get_dimensions(gallery, photo)
-            ratio = float(raw_width) / float(raw_height)
-
-            if (ratio >= 1.0) or (height is None):
-                # Fit to width
-                height = int(width / ratio)
-            else:
-                # Fit to height
-                width = int(height * ratio)
-
-            self._log.debug('%s/%s target dimensions %d by %d',
-                    gallery, photo, width, height)
+        # Sanitise dimensions given by user.
+        width, height = self.get_dimensions(gallery, photo, width, height)
+        self._log.debug('%s/%s target dimensions %d by %d',
+                gallery, photo, width, height)
 
         # Determine where the file would be cached
         (cache_dir, cache_name) = self._get_cache_name(gallery, photo,
@@ -251,14 +274,22 @@ class ResizerPool(object):
         return (img_format, cache_name,
                 open(cache_path, 'rb').read())
 
+    def get_dimensions(self, gallery, photo, width=None, height=None):
+        img_node = self._fs_node.join_node(gallery, photo)
+        img = Image.open(open(img_node.abs_path,'rb'))
+
+        if (width is None) and (height is None):
+            return img.size
+
+        return calc_dimensions(*(img.size + (width, height)))
+
     def get_properties(self, gallery, photo):
         """
         Return the raw properties of the photo.
         """
         log = self._log.getChild('%s/%s' % (gallery, photo))
         img_node = self._fs_node.join_node(gallery, photo)
-        img = Image.open(open(img_node.abs_path,'rb'))
-        (width, height) = img.size
+        (width, height) = self.get_dimensions(gallery, photo)
         meta = dict(width=width, height=height)
 
         log.debug('Raw dimensions %dx%d', width, height)
