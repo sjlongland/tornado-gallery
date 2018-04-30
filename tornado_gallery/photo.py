@@ -2,6 +2,7 @@
 
 from weakref import ref
 from tornado.gen import coroutine, Return
+from .resizer import calc_dimensions
 
 try:
     import piexif
@@ -159,21 +160,7 @@ class Photo(object):
         """
         Get the actual size of a photo that fits in the bounding box given.
         """
-        orig_width = self.width
-        orig_height = self.height
-        if not width:
-            if height:
-                width = int((height * self.ratio) + 0.5)
-            else:
-                width = orig_width
-
-        if not height:
-            if width:
-                height = int((width / self.ratio) + 0.5)
-            else:
-                height = orig_height
-
-        return (width, height)
+        return calc_dimensions(self.width, self.height, width, height)
 
     def get_rel_uri(self, width=720, height=None, rotation=0.0, quality=60.0,
             img_format=None):
