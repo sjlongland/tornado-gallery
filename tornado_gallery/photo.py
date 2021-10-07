@@ -12,7 +12,7 @@ except ImportError:
 
 DEFAULT_WIDTH = 720
 DEFAULT_HEIGHT = 540
-DEFAULT_QUALITY = 60
+DEFAULT_QUALITY = 60.0
 DEFAULT_ROTATION = 0.0
 THUMB_SIZE = 100
 
@@ -113,6 +113,13 @@ class Photo(object):
             return None
 
     @property
+    def preferred_quality(self):
+        try:
+            return self._get_meta('.quality')
+        except KeyError:
+            return DEFAULT_QUALITY
+
+    @property
     def prev(self):
         try:
             return self._gallery()._get_prev(self.name)
@@ -167,8 +174,7 @@ class Photo(object):
         return calc_dimensions(self.width, self.height, width, height)
 
     def get_rel_uri(self, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT,
-            rotation=DEFAULT_ROTATION, quality=DEFAULT_QUALITY,
-            img_format=None):
+            rotation=DEFAULT_ROTATION, quality=None, img_format=None):
         """
         Return the URI of the given photo relative to the site URI
         """
@@ -181,7 +187,7 @@ class Photo(object):
             uri += '@%f' % float(rotation)
 
         # Quality
-        uri += '/%f' % float(quality or 60.0)
+        uri += '/%f' % float(quality or self.preferred_quality)
 
         # Format; if given
         if img_format is not None:
@@ -208,12 +214,12 @@ class Photo(object):
 
     # Gallery services
     @coroutine
-    def get_resized(self, width=None, height=None, quality=60,
+    def get_resized(self, width=None, height=None, quality=None,
             rotation=0.0, img_format=None):
         result = yield self._gallery().get_resized(
                 photo=self.name, width=width, height=height,
-                quality=quality, rotation=rotation,
-                img_format=img_format,
+                quality=quality or self.preferred_quality,
+                rotation=rotation, img_format=img_format,
                 orientation=self.orientation)
         raise Return(result)
 
